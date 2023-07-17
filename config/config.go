@@ -9,6 +9,7 @@ const (
 	defaultPort                = "3000"
 	defaultAppName             = "Boilerplate"
 	defaultDBDebugEnabledValue = "false"
+	defaultJwtIssuer           = "job-board"
 )
 
 type (
@@ -18,6 +19,8 @@ type (
 		APP_URL        string
 		DB_DRIVER_NAME string
 		DB_CONFIG      DB_CONFIG
+		JWT_ISSUER     string
+		JWT_SECRET_KEY string
 	}
 	DB_CONFIG struct {
 		DB_NAME       string
@@ -51,6 +54,8 @@ func setFromEnv(config *Config) {
 	config.DB_DRIVER_NAME = viper.GetString("DB_DRIVER_NAME")
 	config.DB_CONFIG.USER = viper.GetString("DB_USER")
 	config.DB_CONFIG.DEBUG_ENABLED = viper.GetString("DB_DEBUG_ENABLED")
+	config.JWT_ISSUER = viper.GetString("JWT_ISSUER")
+	config.JWT_SECRET_KEY = viper.GetString("JWT_SECRET_KEY")
 }
 
 func parseConfigFile(envFilePath, configName string) {
@@ -72,4 +77,5 @@ func populateDefault() {
 	viper.SetDefault("PORT", defaultPort)
 	viper.SetDefault("APP_NAME", defaultAppName)
 	viper.SetDefault("DEBUG_ENABLED", defaultDBDebugEnabledValue)
+	viper.SetDefault("JWT_ISSUER", defaultJwtIssuer)
 }

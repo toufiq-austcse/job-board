@@ -44,42 +44,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/todos": {
-            "get": {
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Todo"
-                ],
-                "summary": "List Todo",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/api_response.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        "data": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/res.TodoRespData"
-                                            }
-                                        }
-                                    }
-                                }
-                            ]
-                        }
-                    }
-                }
-            },
+        "/api/v1/auth/login": {
             "post": {
                 "consumes": [
                     "application/json"
@@ -88,21 +53,24 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Todo"
+                    "Auth"
                 ],
-                "summary": "Create Todo",
+                "summary": "Company Login",
                 "parameters": [
                     {
-                        "description": "Create Todo Payload",
+                        "description": "Login Req Body",
                         "name": "request",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/req.TodoCreateReqModel"
+                            "$ref": "#/definitions/req.LoginReqModel"
                         }
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": ""
+                    },
                     "201": {
                         "description": "Created",
                         "schema": {
@@ -114,7 +82,7 @@ var doc = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/res.TodoRespData"
+                                            "$ref": "#/definitions/res.LoginResModel"
                                         }
                                     }
                                 }
@@ -124,8 +92,13 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/todos/{id}": {
+        "/api/v1/auth/me": {
             "get": {
+                "security": [
+                    {
+                        "Authorization": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -133,18 +106,9 @@ var doc = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Todo"
+                    "Auth"
                 ],
-                "summary": "List Todo",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "todo id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
+                "summary": "Token Verification",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -157,7 +121,55 @@ var doc = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/res.TodoRespData"
+                                            "$ref": "#/definitions/res.TokenVerificationRes"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/signup": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Company SignUp",
+                "parameters": [
+                    {
+                        "description": "Signup Req Body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/req.SignUpReqModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api_response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/res.SignUpResModel"
                                         }
                                     }
                                 }
@@ -190,34 +202,123 @@ var doc = `{
                 }
             }
         },
-        "req.TodoCreateReqModel": {
+        "req.LoginReqModel": {
             "type": "object",
             "required": [
-                "status",
-                "title"
+                "email",
+                "password"
             ],
             "properties": {
-                "status": {
+                "email": {
                     "type": "string"
                 },
-                "title": {
+                "password": {
                     "type": "string"
                 }
             }
         },
-        "res.TodoRespData": {
+        "req.SignUpReqModel": {
             "type": "object",
+            "required": [
+                "email",
+                "name",
+                "password"
+            ],
             "properties": {
-                "id": {
+                "email": {
                     "type": "string"
                 },
-                "status": {
+                "name": {
                     "type": "string"
                 },
-                "title": {
+                "password": {
                     "type": "string"
                 }
             }
+        },
+        "res.CompanyInfo": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "res.LoginResModel": {
+            "type": "object",
+            "properties": {
+                "company_info": {
+                    "type": "object",
+                    "$ref": "#/definitions/res.CompanyInfo"
+                },
+                "token": {
+                    "type": "object",
+                    "$ref": "#/definitions/res.Token"
+                }
+            }
+        },
+        "res.SignUpResModel": {
+            "type": "object",
+            "properties": {
+                "company_info": {
+                    "type": "object",
+                    "$ref": "#/definitions/res.CompanyInfo"
+                },
+                "token": {
+                    "type": "object",
+                    "$ref": "#/definitions/res.Token"
+                }
+            }
+        },
+        "res.Token": {
+            "type": "object",
+            "properties": {
+                "access_token": {
+                    "type": "string"
+                },
+                "expire_at": {
+                    "type": "integer"
+                }
+            }
+        },
+        "res.TokenVerificationRes": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "established": {
+                    "type": "string"
+                },
+                "industry": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "logo_url": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "string"
+                },
+                "website_url": {
+                    "type": "string"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "Authorization": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`

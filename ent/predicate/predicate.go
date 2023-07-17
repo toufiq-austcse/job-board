@@ -6,5 +6,14 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
-// Todo is the predicate function for todo builders.
-type Todo func(*sql.Selector)
+// Company is the predicate function for company builders.
+type Company func(*sql.Selector)
+
+// Job is the predicate function for job builders.
+type Job func(*sql.Selector)
+
+// JobTaxonomy is the predicate function for jobtaxonomy builders.
+type JobTaxonomy func(*sql.Selector)
+
+// Taxonomy is the predicate function for taxonomy builders.
+type Taxonomy func(*sql.Selector)

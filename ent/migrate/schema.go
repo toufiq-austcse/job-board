@@ -8,21 +8,75 @@ import (
 )
 
 var (
-	// TodosColumns holds the columns for the "todos" table.
-	TodosColumns = []*schema.Column{
-		{Name: "id", Type: field.TypeUUID},
-		{Name: "title", Type: field.TypeString, Default: ""},
-		{Name: "status", Type: field.TypeString, Default: ""},
+	// CompaniesColumns holds the columns for the "companies" table.
+	CompaniesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "location", Type: field.TypeString, Nullable: true},
+		{Name: "logo_url", Type: field.TypeString, Nullable: true},
+		{Name: "website_url", Type: field.TypeString, Nullable: true},
+		{Name: "email", Type: field.TypeString, Unique: true},
+		{Name: "password", Type: field.TypeString},
+		{Name: "size", Type: field.TypeString, Nullable: true},
+		{Name: "industry", Type: field.TypeString, Nullable: true},
+		{Name: "established", Type: field.TypeString, Nullable: true},
+		{Name: "description", Type: field.TypeString, Nullable: true},
+		{Name: "culture_description", Type: field.TypeString, Nullable: true},
+		{Name: "hiring_description", Type: field.TypeString, Nullable: true},
 	}
-	// TodosTable holds the schema information for the "todos" table.
-	TodosTable = &schema.Table{
-		Name:       "todos",
-		Columns:    TodosColumns,
-		PrimaryKey: []*schema.Column{TodosColumns[0]},
+	// CompaniesTable holds the schema information for the "companies" table.
+	CompaniesTable = &schema.Table{
+		Name:       "companies",
+		Columns:    CompaniesColumns,
+		PrimaryKey: []*schema.Column{CompaniesColumns[0]},
+	}
+	// JobsColumns holds the columns for the "jobs" table.
+	JobsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "title", Type: field.TypeString},
+		{Name: "slug", Type: field.TypeString},
+		{Name: "apply_to", Type: field.TypeString},
+		{Name: "description", Type: field.TypeString},
+		{Name: "company_id", Type: field.TypeInt},
+	}
+	// JobsTable holds the schema information for the "jobs" table.
+	JobsTable = &schema.Table{
+		Name:       "jobs",
+		Columns:    JobsColumns,
+		PrimaryKey: []*schema.Column{JobsColumns[0]},
+	}
+	// JobTaxonomiesColumns holds the columns for the "job_taxonomies" table.
+	JobTaxonomiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "job_id", Type: field.TypeInt},
+		{Name: "taxonomy_id", Type: field.TypeInt},
+	}
+	// JobTaxonomiesTable holds the schema information for the "job_taxonomies" table.
+	JobTaxonomiesTable = &schema.Table{
+		Name:       "job_taxonomies",
+		Columns:    JobTaxonomiesColumns,
+		PrimaryKey: []*schema.Column{JobTaxonomiesColumns[0]},
+	}
+	// TaxonomiesColumns holds the columns for the "taxonomies" table.
+	TaxonomiesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "parent_id", Type: field.TypeString, Nullable: true},
+		{Name: "title", Type: field.TypeString, Nullable: true},
+		{Name: "slug", Type: field.TypeString, Nullable: true},
+		{Name: "type", Type: field.TypeString, Nullable: true},
+	}
+	// TaxonomiesTable holds the schema information for the "taxonomies" table.
+	TaxonomiesTable = &schema.Table{
+		Name:       "taxonomies",
+		Columns:    TaxonomiesColumns,
+		PrimaryKey: []*schema.Column{TaxonomiesColumns[0]},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		TodosTable,
+		CompaniesTable,
+		JobsTable,
+		JobTaxonomiesTable,
+		TaxonomiesTable,
 	}
 )
 

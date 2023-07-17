@@ -9,7 +9,8 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/toufiq-austcse/go-api-boilerplate/config"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent"
-	"github.com/toufiq-austcse/go-api-boilerplate/enums/db_driver"
+	_ "github.com/toufiq-austcse/go-api-boilerplate/ent/runtime"
+	db_drivers_enum "github.com/toufiq-austcse/go-api-boilerplate/enums/db_driver"
 	"github.com/toufiq-austcse/go-api-boilerplate/pkg/db/providers/mysql"
 	"github.com/toufiq-austcse/go-api-boilerplate/pkg/db/providers/postgresql"
 )

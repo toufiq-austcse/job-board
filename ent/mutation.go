@@ -10,9 +10,11 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/google/uuid"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/company"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/job"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/jobtaxonomy"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent/predicate"
-	"github.com/toufiq-austcse/go-api-boilerplate/ent/todo"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/taxonomy"
 )
 
 const (
@@ -24,34 +26,47 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeTodo = "Todo"
+	TypeCompany     = "Company"
+	TypeJob         = "Job"
+	TypeJobTaxonomy = "JobTaxonomy"
+	TypeTaxonomy    = "Taxonomy"
 )
 
-// TodoMutation represents an operation that mutates the Todo nodes in the graph.
-type TodoMutation struct {
+// CompanyMutation represents an operation that mutates the Company nodes in the graph.
+type CompanyMutation struct {
 	config
-	op            Op
-	typ           string
-	id            *uuid.UUID
-	title         *string
-	status        *string
-	clearedFields map[string]struct{}
-	done          bool
-	oldValue      func(context.Context) (*Todo, error)
-	predicates    []predicate.Todo
+	op                  Op
+	typ                 string
+	id                  *int
+	name                *string
+	location            *string
+	logo_url            *string
+	website_url         *string
+	email               *string
+	password            *string
+	size                *string
+	industry            *string
+	established         *string
+	description         *string
+	culture_description *string
+	hiring_description  *string
+	clearedFields       map[string]struct{}
+	done                bool
+	oldValue            func(context.Context) (*Company, error)
+	predicates          []predicate.Company
 }
 
-var _ ent.Mutation = (*TodoMutation)(nil)
+var _ ent.Mutation = (*CompanyMutation)(nil)
 
-// todoOption allows management of the mutation configuration using functional options.
-type todoOption func(*TodoMutation)
+// companyOption allows management of the mutation configuration using functional options.
+type companyOption func(*CompanyMutation)
 
-// newTodoMutation creates new mutation for the Todo entity.
-func newTodoMutation(c config, op Op, opts ...todoOption) *TodoMutation {
-	m := &TodoMutation{
+// newCompanyMutation creates new mutation for the Company entity.
+func newCompanyMutation(c config, op Op, opts ...companyOption) *CompanyMutation {
+	m := &CompanyMutation{
 		config:        c,
 		op:            op,
-		typ:           TypeTodo,
+		typ:           TypeCompany,
 		clearedFields: make(map[string]struct{}),
 	}
 	for _, opt := range opts {
@@ -60,20 +75,20 @@ func newTodoMutation(c config, op Op, opts ...todoOption) *TodoMutation {
 	return m
 }
 
-// withTodoID sets the ID field of the mutation.
-func withTodoID(id uuid.UUID) todoOption {
-	return func(m *TodoMutation) {
+// withCompanyID sets the ID field of the mutation.
+func withCompanyID(id int) companyOption {
+	return func(m *CompanyMutation) {
 		var (
 			err   error
 			once  sync.Once
-			value *Todo
+			value *Company
 		)
-		m.oldValue = func(ctx context.Context) (*Todo, error) {
+		m.oldValue = func(ctx context.Context) (*Company, error) {
 			once.Do(func() {
 				if m.done {
 					err = errors.New("querying old values post mutation is not allowed")
 				} else {
-					value, err = m.Client().Todo.Get(ctx, id)
+					value, err = m.Client().Company.Get(ctx, id)
 				}
 			})
 			return value, err
@@ -82,10 +97,10 @@ func withTodoID(id uuid.UUID) todoOption {
 	}
 }
 
-// withTodo sets the old Todo of the mutation.
-func withTodo(node *Todo) todoOption {
-	return func(m *TodoMutation) {
-		m.oldValue = func(context.Context) (*Todo, error) {
+// withCompany sets the old Company of the mutation.
+func withCompany(node *Company) companyOption {
+	return func(m *CompanyMutation) {
+		m.oldValue = func(context.Context) (*Company, error) {
 			return node, nil
 		}
 		m.id = &node.ID
@@ -94,7 +109,7 @@ func withTodo(node *Todo) todoOption {
 
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
-func (m TodoMutation) Client() *Client {
+func (m CompanyMutation) Client() *Client {
 	client := &Client{config: m.config}
 	client.init()
 	return client
@@ -102,7 +117,7 @@ func (m TodoMutation) Client() *Client {
 
 // Tx returns an `ent.Tx` for mutations that were executed in transactions;
 // it returns an error otherwise.
-func (m TodoMutation) Tx() (*Tx, error) {
+func (m CompanyMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
 		return nil, errors.New("ent: mutation is not running in a transaction")
 	}
@@ -111,15 +126,9 @@ func (m TodoMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of Todo entities.
-func (m *TodoMutation) SetID(id uuid.UUID) {
-	m.id = &id
-}
-
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *TodoMutation) ID() (id uuid.UUID, exists bool) {
+func (m *CompanyMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -130,28 +139,1116 @@ func (m *TodoMutation) ID() (id uuid.UUID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *TodoMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+func (m *CompanyMutation) IDs(ctx context.Context) ([]int, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []uuid.UUID{id}, nil
+			return []int{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().Todo.Query().Where(m.predicates...).IDs(ctx)
+		return m.Client().Company.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetName sets the "name" field.
+func (m *CompanyMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *CompanyMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the Company entity.
+// If the Company object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompanyMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *CompanyMutation) ResetName() {
+	m.name = nil
+}
+
+// SetLocation sets the "location" field.
+func (m *CompanyMutation) SetLocation(s string) {
+	m.location = &s
+}
+
+// Location returns the value of the "location" field in the mutation.
+func (m *CompanyMutation) Location() (r string, exists bool) {
+	v := m.location
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLocation returns the old "location" field's value of the Company entity.
+// If the Company object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompanyMutation) OldLocation(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLocation is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLocation requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLocation: %w", err)
+	}
+	return oldValue.Location, nil
+}
+
+// ClearLocation clears the value of the "location" field.
+func (m *CompanyMutation) ClearLocation() {
+	m.location = nil
+	m.clearedFields[company.FieldLocation] = struct{}{}
+}
+
+// LocationCleared returns if the "location" field was cleared in this mutation.
+func (m *CompanyMutation) LocationCleared() bool {
+	_, ok := m.clearedFields[company.FieldLocation]
+	return ok
+}
+
+// ResetLocation resets all changes to the "location" field.
+func (m *CompanyMutation) ResetLocation() {
+	m.location = nil
+	delete(m.clearedFields, company.FieldLocation)
+}
+
+// SetLogoURL sets the "logo_url" field.
+func (m *CompanyMutation) SetLogoURL(s string) {
+	m.logo_url = &s
+}
+
+// LogoURL returns the value of the "logo_url" field in the mutation.
+func (m *CompanyMutation) LogoURL() (r string, exists bool) {
+	v := m.logo_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLogoURL returns the old "logo_url" field's value of the Company entity.
+// If the Company object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompanyMutation) OldLogoURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLogoURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLogoURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLogoURL: %w", err)
+	}
+	return oldValue.LogoURL, nil
+}
+
+// ClearLogoURL clears the value of the "logo_url" field.
+func (m *CompanyMutation) ClearLogoURL() {
+	m.logo_url = nil
+	m.clearedFields[company.FieldLogoURL] = struct{}{}
+}
+
+// LogoURLCleared returns if the "logo_url" field was cleared in this mutation.
+func (m *CompanyMutation) LogoURLCleared() bool {
+	_, ok := m.clearedFields[company.FieldLogoURL]
+	return ok
+}
+
+// ResetLogoURL resets all changes to the "logo_url" field.
+func (m *CompanyMutation) ResetLogoURL() {
+	m.logo_url = nil
+	delete(m.clearedFields, company.FieldLogoURL)
+}
+
+// SetWebsiteURL sets the "website_url" field.
+func (m *CompanyMutation) SetWebsiteURL(s string) {
+	m.website_url = &s
+}
+
+// WebsiteURL returns the value of the "website_url" field in the mutation.
+func (m *CompanyMutation) WebsiteURL() (r string, exists bool) {
+	v := m.website_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldWebsiteURL returns the old "website_url" field's value of the Company entity.
+// If the Company object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompanyMutation) OldWebsiteURL(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldWebsiteURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldWebsiteURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldWebsiteURL: %w", err)
+	}
+	return oldValue.WebsiteURL, nil
+}
+
+// ClearWebsiteURL clears the value of the "website_url" field.
+func (m *CompanyMutation) ClearWebsiteURL() {
+	m.website_url = nil
+	m.clearedFields[company.FieldWebsiteURL] = struct{}{}
+}
+
+// WebsiteURLCleared returns if the "website_url" field was cleared in this mutation.
+func (m *CompanyMutation) WebsiteURLCleared() bool {
+	_, ok := m.clearedFields[company.FieldWebsiteURL]
+	return ok
+}
+
+// ResetWebsiteURL resets all changes to the "website_url" field.
+func (m *CompanyMutation) ResetWebsiteURL() {
+	m.website_url = nil
+	delete(m.clearedFields, company.FieldWebsiteURL)
+}
+
+// SetEmail sets the "email" field.
+func (m *CompanyMutation) SetEmail(s string) {
+	m.email = &s
+}
+
+// Email returns the value of the "email" field in the mutation.
+func (m *CompanyMutation) Email() (r string, exists bool) {
+	v := m.email
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEmail returns the old "email" field's value of the Company entity.
+// If the Company object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompanyMutation) OldEmail(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEmail is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEmail requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEmail: %w", err)
+	}
+	return oldValue.Email, nil
+}
+
+// ResetEmail resets all changes to the "email" field.
+func (m *CompanyMutation) ResetEmail() {
+	m.email = nil
+}
+
+// SetPassword sets the "password" field.
+func (m *CompanyMutation) SetPassword(s string) {
+	m.password = &s
+}
+
+// Password returns the value of the "password" field in the mutation.
+func (m *CompanyMutation) Password() (r string, exists bool) {
+	v := m.password
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPassword returns the old "password" field's value of the Company entity.
+// If the Company object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompanyMutation) OldPassword(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPassword is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPassword requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPassword: %w", err)
+	}
+	return oldValue.Password, nil
+}
+
+// ResetPassword resets all changes to the "password" field.
+func (m *CompanyMutation) ResetPassword() {
+	m.password = nil
+}
+
+// SetSize sets the "size" field.
+func (m *CompanyMutation) SetSize(s string) {
+	m.size = &s
+}
+
+// Size returns the value of the "size" field in the mutation.
+func (m *CompanyMutation) Size() (r string, exists bool) {
+	v := m.size
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSize returns the old "size" field's value of the Company entity.
+// If the Company object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompanyMutation) OldSize(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSize is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSize requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSize: %w", err)
+	}
+	return oldValue.Size, nil
+}
+
+// ClearSize clears the value of the "size" field.
+func (m *CompanyMutation) ClearSize() {
+	m.size = nil
+	m.clearedFields[company.FieldSize] = struct{}{}
+}
+
+// SizeCleared returns if the "size" field was cleared in this mutation.
+func (m *CompanyMutation) SizeCleared() bool {
+	_, ok := m.clearedFields[company.FieldSize]
+	return ok
+}
+
+// ResetSize resets all changes to the "size" field.
+func (m *CompanyMutation) ResetSize() {
+	m.size = nil
+	delete(m.clearedFields, company.FieldSize)
+}
+
+// SetIndustry sets the "industry" field.
+func (m *CompanyMutation) SetIndustry(s string) {
+	m.industry = &s
+}
+
+// Industry returns the value of the "industry" field in the mutation.
+func (m *CompanyMutation) Industry() (r string, exists bool) {
+	v := m.industry
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIndustry returns the old "industry" field's value of the Company entity.
+// If the Company object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompanyMutation) OldIndustry(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIndustry is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIndustry requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIndustry: %w", err)
+	}
+	return oldValue.Industry, nil
+}
+
+// ClearIndustry clears the value of the "industry" field.
+func (m *CompanyMutation) ClearIndustry() {
+	m.industry = nil
+	m.clearedFields[company.FieldIndustry] = struct{}{}
+}
+
+// IndustryCleared returns if the "industry" field was cleared in this mutation.
+func (m *CompanyMutation) IndustryCleared() bool {
+	_, ok := m.clearedFields[company.FieldIndustry]
+	return ok
+}
+
+// ResetIndustry resets all changes to the "industry" field.
+func (m *CompanyMutation) ResetIndustry() {
+	m.industry = nil
+	delete(m.clearedFields, company.FieldIndustry)
+}
+
+// SetEstablished sets the "established" field.
+func (m *CompanyMutation) SetEstablished(s string) {
+	m.established = &s
+}
+
+// Established returns the value of the "established" field in the mutation.
+func (m *CompanyMutation) Established() (r string, exists bool) {
+	v := m.established
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEstablished returns the old "established" field's value of the Company entity.
+// If the Company object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompanyMutation) OldEstablished(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEstablished is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEstablished requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEstablished: %w", err)
+	}
+	return oldValue.Established, nil
+}
+
+// ClearEstablished clears the value of the "established" field.
+func (m *CompanyMutation) ClearEstablished() {
+	m.established = nil
+	m.clearedFields[company.FieldEstablished] = struct{}{}
+}
+
+// EstablishedCleared returns if the "established" field was cleared in this mutation.
+func (m *CompanyMutation) EstablishedCleared() bool {
+	_, ok := m.clearedFields[company.FieldEstablished]
+	return ok
+}
+
+// ResetEstablished resets all changes to the "established" field.
+func (m *CompanyMutation) ResetEstablished() {
+	m.established = nil
+	delete(m.clearedFields, company.FieldEstablished)
+}
+
+// SetDescription sets the "description" field.
+func (m *CompanyMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *CompanyMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the Company entity.
+// If the Company object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompanyMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ClearDescription clears the value of the "description" field.
+func (m *CompanyMutation) ClearDescription() {
+	m.description = nil
+	m.clearedFields[company.FieldDescription] = struct{}{}
+}
+
+// DescriptionCleared returns if the "description" field was cleared in this mutation.
+func (m *CompanyMutation) DescriptionCleared() bool {
+	_, ok := m.clearedFields[company.FieldDescription]
+	return ok
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *CompanyMutation) ResetDescription() {
+	m.description = nil
+	delete(m.clearedFields, company.FieldDescription)
+}
+
+// SetCultureDescription sets the "culture_description" field.
+func (m *CompanyMutation) SetCultureDescription(s string) {
+	m.culture_description = &s
+}
+
+// CultureDescription returns the value of the "culture_description" field in the mutation.
+func (m *CompanyMutation) CultureDescription() (r string, exists bool) {
+	v := m.culture_description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCultureDescription returns the old "culture_description" field's value of the Company entity.
+// If the Company object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompanyMutation) OldCultureDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCultureDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCultureDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCultureDescription: %w", err)
+	}
+	return oldValue.CultureDescription, nil
+}
+
+// ClearCultureDescription clears the value of the "culture_description" field.
+func (m *CompanyMutation) ClearCultureDescription() {
+	m.culture_description = nil
+	m.clearedFields[company.FieldCultureDescription] = struct{}{}
+}
+
+// CultureDescriptionCleared returns if the "culture_description" field was cleared in this mutation.
+func (m *CompanyMutation) CultureDescriptionCleared() bool {
+	_, ok := m.clearedFields[company.FieldCultureDescription]
+	return ok
+}
+
+// ResetCultureDescription resets all changes to the "culture_description" field.
+func (m *CompanyMutation) ResetCultureDescription() {
+	m.culture_description = nil
+	delete(m.clearedFields, company.FieldCultureDescription)
+}
+
+// SetHiringDescription sets the "hiring_description" field.
+func (m *CompanyMutation) SetHiringDescription(s string) {
+	m.hiring_description = &s
+}
+
+// HiringDescription returns the value of the "hiring_description" field in the mutation.
+func (m *CompanyMutation) HiringDescription() (r string, exists bool) {
+	v := m.hiring_description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldHiringDescription returns the old "hiring_description" field's value of the Company entity.
+// If the Company object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompanyMutation) OldHiringDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldHiringDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldHiringDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHiringDescription: %w", err)
+	}
+	return oldValue.HiringDescription, nil
+}
+
+// ClearHiringDescription clears the value of the "hiring_description" field.
+func (m *CompanyMutation) ClearHiringDescription() {
+	m.hiring_description = nil
+	m.clearedFields[company.FieldHiringDescription] = struct{}{}
+}
+
+// HiringDescriptionCleared returns if the "hiring_description" field was cleared in this mutation.
+func (m *CompanyMutation) HiringDescriptionCleared() bool {
+	_, ok := m.clearedFields[company.FieldHiringDescription]
+	return ok
+}
+
+// ResetHiringDescription resets all changes to the "hiring_description" field.
+func (m *CompanyMutation) ResetHiringDescription() {
+	m.hiring_description = nil
+	delete(m.clearedFields, company.FieldHiringDescription)
+}
+
+// Where appends a list predicates to the CompanyMutation builder.
+func (m *CompanyMutation) Where(ps ...predicate.Company) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the CompanyMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *CompanyMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Company, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *CompanyMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *CompanyMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Company).
+func (m *CompanyMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *CompanyMutation) Fields() []string {
+	fields := make([]string, 0, 12)
+	if m.name != nil {
+		fields = append(fields, company.FieldName)
+	}
+	if m.location != nil {
+		fields = append(fields, company.FieldLocation)
+	}
+	if m.logo_url != nil {
+		fields = append(fields, company.FieldLogoURL)
+	}
+	if m.website_url != nil {
+		fields = append(fields, company.FieldWebsiteURL)
+	}
+	if m.email != nil {
+		fields = append(fields, company.FieldEmail)
+	}
+	if m.password != nil {
+		fields = append(fields, company.FieldPassword)
+	}
+	if m.size != nil {
+		fields = append(fields, company.FieldSize)
+	}
+	if m.industry != nil {
+		fields = append(fields, company.FieldIndustry)
+	}
+	if m.established != nil {
+		fields = append(fields, company.FieldEstablished)
+	}
+	if m.description != nil {
+		fields = append(fields, company.FieldDescription)
+	}
+	if m.culture_description != nil {
+		fields = append(fields, company.FieldCultureDescription)
+	}
+	if m.hiring_description != nil {
+		fields = append(fields, company.FieldHiringDescription)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *CompanyMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case company.FieldName:
+		return m.Name()
+	case company.FieldLocation:
+		return m.Location()
+	case company.FieldLogoURL:
+		return m.LogoURL()
+	case company.FieldWebsiteURL:
+		return m.WebsiteURL()
+	case company.FieldEmail:
+		return m.Email()
+	case company.FieldPassword:
+		return m.Password()
+	case company.FieldSize:
+		return m.Size()
+	case company.FieldIndustry:
+		return m.Industry()
+	case company.FieldEstablished:
+		return m.Established()
+	case company.FieldDescription:
+		return m.Description()
+	case company.FieldCultureDescription:
+		return m.CultureDescription()
+	case company.FieldHiringDescription:
+		return m.HiringDescription()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *CompanyMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case company.FieldName:
+		return m.OldName(ctx)
+	case company.FieldLocation:
+		return m.OldLocation(ctx)
+	case company.FieldLogoURL:
+		return m.OldLogoURL(ctx)
+	case company.FieldWebsiteURL:
+		return m.OldWebsiteURL(ctx)
+	case company.FieldEmail:
+		return m.OldEmail(ctx)
+	case company.FieldPassword:
+		return m.OldPassword(ctx)
+	case company.FieldSize:
+		return m.OldSize(ctx)
+	case company.FieldIndustry:
+		return m.OldIndustry(ctx)
+	case company.FieldEstablished:
+		return m.OldEstablished(ctx)
+	case company.FieldDescription:
+		return m.OldDescription(ctx)
+	case company.FieldCultureDescription:
+		return m.OldCultureDescription(ctx)
+	case company.FieldHiringDescription:
+		return m.OldHiringDescription(ctx)
+	}
+	return nil, fmt.Errorf("unknown Company field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CompanyMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case company.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	case company.FieldLocation:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLocation(v)
+		return nil
+	case company.FieldLogoURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLogoURL(v)
+		return nil
+	case company.FieldWebsiteURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetWebsiteURL(v)
+		return nil
+	case company.FieldEmail:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEmail(v)
+		return nil
+	case company.FieldPassword:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPassword(v)
+		return nil
+	case company.FieldSize:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSize(v)
+		return nil
+	case company.FieldIndustry:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIndustry(v)
+		return nil
+	case company.FieldEstablished:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEstablished(v)
+		return nil
+	case company.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case company.FieldCultureDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCultureDescription(v)
+		return nil
+	case company.FieldHiringDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetHiringDescription(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Company field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *CompanyMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *CompanyMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *CompanyMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Company numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *CompanyMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(company.FieldLocation) {
+		fields = append(fields, company.FieldLocation)
+	}
+	if m.FieldCleared(company.FieldLogoURL) {
+		fields = append(fields, company.FieldLogoURL)
+	}
+	if m.FieldCleared(company.FieldWebsiteURL) {
+		fields = append(fields, company.FieldWebsiteURL)
+	}
+	if m.FieldCleared(company.FieldSize) {
+		fields = append(fields, company.FieldSize)
+	}
+	if m.FieldCleared(company.FieldIndustry) {
+		fields = append(fields, company.FieldIndustry)
+	}
+	if m.FieldCleared(company.FieldEstablished) {
+		fields = append(fields, company.FieldEstablished)
+	}
+	if m.FieldCleared(company.FieldDescription) {
+		fields = append(fields, company.FieldDescription)
+	}
+	if m.FieldCleared(company.FieldCultureDescription) {
+		fields = append(fields, company.FieldCultureDescription)
+	}
+	if m.FieldCleared(company.FieldHiringDescription) {
+		fields = append(fields, company.FieldHiringDescription)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *CompanyMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *CompanyMutation) ClearField(name string) error {
+	switch name {
+	case company.FieldLocation:
+		m.ClearLocation()
+		return nil
+	case company.FieldLogoURL:
+		m.ClearLogoURL()
+		return nil
+	case company.FieldWebsiteURL:
+		m.ClearWebsiteURL()
+		return nil
+	case company.FieldSize:
+		m.ClearSize()
+		return nil
+	case company.FieldIndustry:
+		m.ClearIndustry()
+		return nil
+	case company.FieldEstablished:
+		m.ClearEstablished()
+		return nil
+	case company.FieldDescription:
+		m.ClearDescription()
+		return nil
+	case company.FieldCultureDescription:
+		m.ClearCultureDescription()
+		return nil
+	case company.FieldHiringDescription:
+		m.ClearHiringDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown Company nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *CompanyMutation) ResetField(name string) error {
+	switch name {
+	case company.FieldName:
+		m.ResetName()
+		return nil
+	case company.FieldLocation:
+		m.ResetLocation()
+		return nil
+	case company.FieldLogoURL:
+		m.ResetLogoURL()
+		return nil
+	case company.FieldWebsiteURL:
+		m.ResetWebsiteURL()
+		return nil
+	case company.FieldEmail:
+		m.ResetEmail()
+		return nil
+	case company.FieldPassword:
+		m.ResetPassword()
+		return nil
+	case company.FieldSize:
+		m.ResetSize()
+		return nil
+	case company.FieldIndustry:
+		m.ResetIndustry()
+		return nil
+	case company.FieldEstablished:
+		m.ResetEstablished()
+		return nil
+	case company.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case company.FieldCultureDescription:
+		m.ResetCultureDescription()
+		return nil
+	case company.FieldHiringDescription:
+		m.ResetHiringDescription()
+		return nil
+	}
+	return fmt.Errorf("unknown Company field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *CompanyMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *CompanyMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *CompanyMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *CompanyMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *CompanyMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *CompanyMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *CompanyMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown Company unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *CompanyMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown Company edge %s", name)
+}
+
+// JobMutation represents an operation that mutates the Job nodes in the graph.
+type JobMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	title         *string
+	slug          *string
+	apply_to      *string
+	description   *string
+	company_id    *int
+	addcompany_id *int
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*Job, error)
+	predicates    []predicate.Job
+}
+
+var _ ent.Mutation = (*JobMutation)(nil)
+
+// jobOption allows management of the mutation configuration using functional options.
+type jobOption func(*JobMutation)
+
+// newJobMutation creates new mutation for the Job entity.
+func newJobMutation(c config, op Op, opts ...jobOption) *JobMutation {
+	m := &JobMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeJob,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withJobID sets the ID field of the mutation.
+func withJobID(id int) jobOption {
+	return func(m *JobMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Job
+		)
+		m.oldValue = func(ctx context.Context) (*Job, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Job.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withJob sets the old Job of the mutation.
+func withJob(node *Job) jobOption {
+	return func(m *JobMutation) {
+		m.oldValue = func(context.Context) (*Job, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m JobMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m JobMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *JobMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *JobMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Job.Query().Where(m.predicates...).IDs(ctx)
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
 }
 
 // SetTitle sets the "title" field.
-func (m *TodoMutation) SetTitle(s string) {
+func (m *JobMutation) SetTitle(s string) {
 	m.title = &s
 }
 
 // Title returns the value of the "title" field in the mutation.
-func (m *TodoMutation) Title() (r string, exists bool) {
+func (m *JobMutation) Title() (r string, exists bool) {
 	v := m.title
 	if v == nil {
 		return
@@ -159,10 +1256,10 @@ func (m *TodoMutation) Title() (r string, exists bool) {
 	return *v, true
 }
 
-// OldTitle returns the old "title" field's value of the Todo entity.
-// If the Todo object wasn't provided to the builder, the object is fetched from the database.
+// OldTitle returns the old "title" field's value of the Job entity.
+// If the Job object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TodoMutation) OldTitle(ctx context.Context) (v string, err error) {
+func (m *JobMutation) OldTitle(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
 		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
 	}
@@ -177,55 +1274,183 @@ func (m *TodoMutation) OldTitle(ctx context.Context) (v string, err error) {
 }
 
 // ResetTitle resets all changes to the "title" field.
-func (m *TodoMutation) ResetTitle() {
+func (m *JobMutation) ResetTitle() {
 	m.title = nil
 }
 
-// SetStatus sets the "status" field.
-func (m *TodoMutation) SetStatus(s string) {
-	m.status = &s
+// SetSlug sets the "slug" field.
+func (m *JobMutation) SetSlug(s string) {
+	m.slug = &s
 }
 
-// Status returns the value of the "status" field in the mutation.
-func (m *TodoMutation) Status() (r string, exists bool) {
-	v := m.status
+// Slug returns the value of the "slug" field in the mutation.
+func (m *JobMutation) Slug() (r string, exists bool) {
+	v := m.slug
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldStatus returns the old "status" field's value of the Todo entity.
-// If the Todo object wasn't provided to the builder, the object is fetched from the database.
+// OldSlug returns the old "slug" field's value of the Job entity.
+// If the Job object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *TodoMutation) OldStatus(ctx context.Context) (v string, err error) {
+func (m *JobMutation) OldSlug(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+		return v, errors.New("OldSlug is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldStatus requires an ID field in the mutation")
+		return v, errors.New("OldSlug requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+		return v, fmt.Errorf("querying old value for OldSlug: %w", err)
 	}
-	return oldValue.Status, nil
+	return oldValue.Slug, nil
 }
 
-// ResetStatus resets all changes to the "status" field.
-func (m *TodoMutation) ResetStatus() {
-	m.status = nil
+// ResetSlug resets all changes to the "slug" field.
+func (m *JobMutation) ResetSlug() {
+	m.slug = nil
 }
 
-// Where appends a list predicates to the TodoMutation builder.
-func (m *TodoMutation) Where(ps ...predicate.Todo) {
+// SetApplyTo sets the "apply_to" field.
+func (m *JobMutation) SetApplyTo(s string) {
+	m.apply_to = &s
+}
+
+// ApplyTo returns the value of the "apply_to" field in the mutation.
+func (m *JobMutation) ApplyTo() (r string, exists bool) {
+	v := m.apply_to
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldApplyTo returns the old "apply_to" field's value of the Job entity.
+// If the Job object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *JobMutation) OldApplyTo(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldApplyTo is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldApplyTo requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldApplyTo: %w", err)
+	}
+	return oldValue.ApplyTo, nil
+}
+
+// ResetApplyTo resets all changes to the "apply_to" field.
+func (m *JobMutation) ResetApplyTo() {
+	m.apply_to = nil
+}
+
+// SetDescription sets the "description" field.
+func (m *JobMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *JobMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the Job entity.
+// If the Job object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *JobMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *JobMutation) ResetDescription() {
+	m.description = nil
+}
+
+// SetCompanyID sets the "company_id" field.
+func (m *JobMutation) SetCompanyID(i int) {
+	m.company_id = &i
+	m.addcompany_id = nil
+}
+
+// CompanyID returns the value of the "company_id" field in the mutation.
+func (m *JobMutation) CompanyID() (r int, exists bool) {
+	v := m.company_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCompanyID returns the old "company_id" field's value of the Job entity.
+// If the Job object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *JobMutation) OldCompanyID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCompanyID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCompanyID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCompanyID: %w", err)
+	}
+	return oldValue.CompanyID, nil
+}
+
+// AddCompanyID adds i to the "company_id" field.
+func (m *JobMutation) AddCompanyID(i int) {
+	if m.addcompany_id != nil {
+		*m.addcompany_id += i
+	} else {
+		m.addcompany_id = &i
+	}
+}
+
+// AddedCompanyID returns the value that was added to the "company_id" field in this mutation.
+func (m *JobMutation) AddedCompanyID() (r int, exists bool) {
+	v := m.addcompany_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCompanyID resets all changes to the "company_id" field.
+func (m *JobMutation) ResetCompanyID() {
+	m.company_id = nil
+	m.addcompany_id = nil
+}
+
+// Where appends a list predicates to the JobMutation builder.
+func (m *JobMutation) Where(ps ...predicate.Job) {
 	m.predicates = append(m.predicates, ps...)
 }
 
-// WhereP appends storage-level predicates to the TodoMutation builder. Using this method,
+// WhereP appends storage-level predicates to the JobMutation builder. Using this method,
 // users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *TodoMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.Todo, len(ps))
+func (m *JobMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Job, len(ps))
 	for i := range ps {
 		p[i] = ps[i]
 	}
@@ -233,30 +1458,39 @@ func (m *TodoMutation) WhereP(ps ...func(*sql.Selector)) {
 }
 
 // Op returns the operation name.
-func (m *TodoMutation) Op() Op {
+func (m *JobMutation) Op() Op {
 	return m.op
 }
 
 // SetOp allows setting the mutation operation.
-func (m *TodoMutation) SetOp(op Op) {
+func (m *JobMutation) SetOp(op Op) {
 	m.op = op
 }
 
-// Type returns the node type of this mutation (Todo).
-func (m *TodoMutation) Type() string {
+// Type returns the node type of this mutation (Job).
+func (m *JobMutation) Type() string {
 	return m.typ
 }
 
 // Fields returns all fields that were changed during this mutation. Note that in
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
-func (m *TodoMutation) Fields() []string {
-	fields := make([]string, 0, 2)
+func (m *JobMutation) Fields() []string {
+	fields := make([]string, 0, 5)
 	if m.title != nil {
-		fields = append(fields, todo.FieldTitle)
+		fields = append(fields, job.FieldTitle)
 	}
-	if m.status != nil {
-		fields = append(fields, todo.FieldStatus)
+	if m.slug != nil {
+		fields = append(fields, job.FieldSlug)
+	}
+	if m.apply_to != nil {
+		fields = append(fields, job.FieldApplyTo)
+	}
+	if m.description != nil {
+		fields = append(fields, job.FieldDescription)
+	}
+	if m.company_id != nil {
+		fields = append(fields, job.FieldCompanyID)
 	}
 	return fields
 }
@@ -264,12 +1498,18 @@ func (m *TodoMutation) Fields() []string {
 // Field returns the value of a field with the given name. The second boolean
 // return value indicates that this field was not set, or was not defined in the
 // schema.
-func (m *TodoMutation) Field(name string) (ent.Value, bool) {
+func (m *JobMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case todo.FieldTitle:
+	case job.FieldTitle:
 		return m.Title()
-	case todo.FieldStatus:
-		return m.Status()
+	case job.FieldSlug:
+		return m.Slug()
+	case job.FieldApplyTo:
+		return m.ApplyTo()
+	case job.FieldDescription:
+		return m.Description()
+	case job.FieldCompanyID:
+		return m.CompanyID()
 	}
 	return nil, false
 }
@@ -277,138 +1517,1205 @@ func (m *TodoMutation) Field(name string) (ent.Value, bool) {
 // OldField returns the old value of the field from the database. An error is
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
-func (m *TodoMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+func (m *JobMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case todo.FieldTitle:
+	case job.FieldTitle:
 		return m.OldTitle(ctx)
-	case todo.FieldStatus:
-		return m.OldStatus(ctx)
+	case job.FieldSlug:
+		return m.OldSlug(ctx)
+	case job.FieldApplyTo:
+		return m.OldApplyTo(ctx)
+	case job.FieldDescription:
+		return m.OldDescription(ctx)
+	case job.FieldCompanyID:
+		return m.OldCompanyID(ctx)
 	}
-	return nil, fmt.Errorf("unknown Todo field %s", name)
+	return nil, fmt.Errorf("unknown Job field %s", name)
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *TodoMutation) SetField(name string, value ent.Value) error {
+func (m *JobMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case todo.FieldTitle:
+	case job.FieldTitle:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetTitle(v)
 		return nil
-	case todo.FieldStatus:
+	case job.FieldSlug:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetStatus(v)
+		m.SetSlug(v)
+		return nil
+	case job.FieldApplyTo:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetApplyTo(v)
+		return nil
+	case job.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
+		return nil
+	case job.FieldCompanyID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCompanyID(v)
 		return nil
 	}
-	return fmt.Errorf("unknown Todo field %s", name)
+	return fmt.Errorf("unknown Job field %s", name)
 }
 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
-func (m *TodoMutation) AddedFields() []string {
-	return nil
+func (m *JobMutation) AddedFields() []string {
+	var fields []string
+	if m.addcompany_id != nil {
+		fields = append(fields, job.FieldCompanyID)
+	}
+	return fields
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
-func (m *TodoMutation) AddedField(name string) (ent.Value, bool) {
+func (m *JobMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case job.FieldCompanyID:
+		return m.AddedCompanyID()
+	}
 	return nil, false
 }
 
 // AddField adds the value to the field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *TodoMutation) AddField(name string, value ent.Value) error {
+func (m *JobMutation) AddField(name string, value ent.Value) error {
 	switch name {
+	case job.FieldCompanyID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCompanyID(v)
+		return nil
 	}
-	return fmt.Errorf("unknown Todo numeric field %s", name)
+	return fmt.Errorf("unknown Job numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
-func (m *TodoMutation) ClearedFields() []string {
+func (m *JobMutation) ClearedFields() []string {
 	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
 // cleared in this mutation.
-func (m *TodoMutation) FieldCleared(name string) bool {
+func (m *JobMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
-func (m *TodoMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown Todo nullable field %s", name)
+func (m *JobMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown Job nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
-func (m *TodoMutation) ResetField(name string) error {
+func (m *JobMutation) ResetField(name string) error {
 	switch name {
-	case todo.FieldTitle:
+	case job.FieldTitle:
 		m.ResetTitle()
 		return nil
-	case todo.FieldStatus:
-		m.ResetStatus()
+	case job.FieldSlug:
+		m.ResetSlug()
+		return nil
+	case job.FieldApplyTo:
+		m.ResetApplyTo()
+		return nil
+	case job.FieldDescription:
+		m.ResetDescription()
+		return nil
+	case job.FieldCompanyID:
+		m.ResetCompanyID()
 		return nil
 	}
-	return fmt.Errorf("unknown Todo field %s", name)
+	return fmt.Errorf("unknown Job field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
-func (m *TodoMutation) AddedEdges() []string {
+func (m *JobMutation) AddedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
-func (m *TodoMutation) AddedIDs(name string) []ent.Value {
+func (m *JobMutation) AddedIDs(name string) []ent.Value {
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
-func (m *TodoMutation) RemovedEdges() []string {
+func (m *JobMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
-func (m *TodoMutation) RemovedIDs(name string) []ent.Value {
+func (m *JobMutation) RemovedIDs(name string) []ent.Value {
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *TodoMutation) ClearedEdges() []string {
+func (m *JobMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 0)
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
-func (m *TodoMutation) EdgeCleared(name string) bool {
+func (m *JobMutation) EdgeCleared(name string) bool {
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
-func (m *TodoMutation) ClearEdge(name string) error {
-	return fmt.Errorf("unknown Todo unique edge %s", name)
+func (m *JobMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown Job unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
-func (m *TodoMutation) ResetEdge(name string) error {
-	return fmt.Errorf("unknown Todo edge %s", name)
+func (m *JobMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown Job edge %s", name)
+}
+
+// JobTaxonomyMutation represents an operation that mutates the JobTaxonomy nodes in the graph.
+type JobTaxonomyMutation struct {
+	config
+	op             Op
+	typ            string
+	id             *int
+	job_id         *int
+	addjob_id      *int
+	taxonomy_id    *int
+	addtaxonomy_id *int
+	clearedFields  map[string]struct{}
+	done           bool
+	oldValue       func(context.Context) (*JobTaxonomy, error)
+	predicates     []predicate.JobTaxonomy
+}
+
+var _ ent.Mutation = (*JobTaxonomyMutation)(nil)
+
+// jobtaxonomyOption allows management of the mutation configuration using functional options.
+type jobtaxonomyOption func(*JobTaxonomyMutation)
+
+// newJobTaxonomyMutation creates new mutation for the JobTaxonomy entity.
+func newJobTaxonomyMutation(c config, op Op, opts ...jobtaxonomyOption) *JobTaxonomyMutation {
+	m := &JobTaxonomyMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeJobTaxonomy,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withJobTaxonomyID sets the ID field of the mutation.
+func withJobTaxonomyID(id int) jobtaxonomyOption {
+	return func(m *JobTaxonomyMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *JobTaxonomy
+		)
+		m.oldValue = func(ctx context.Context) (*JobTaxonomy, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().JobTaxonomy.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withJobTaxonomy sets the old JobTaxonomy of the mutation.
+func withJobTaxonomy(node *JobTaxonomy) jobtaxonomyOption {
+	return func(m *JobTaxonomyMutation) {
+		m.oldValue = func(context.Context) (*JobTaxonomy, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m JobTaxonomyMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m JobTaxonomyMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *JobTaxonomyMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *JobTaxonomyMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().JobTaxonomy.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetJobID sets the "job_id" field.
+func (m *JobTaxonomyMutation) SetJobID(i int) {
+	m.job_id = &i
+	m.addjob_id = nil
+}
+
+// JobID returns the value of the "job_id" field in the mutation.
+func (m *JobTaxonomyMutation) JobID() (r int, exists bool) {
+	v := m.job_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldJobID returns the old "job_id" field's value of the JobTaxonomy entity.
+// If the JobTaxonomy object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *JobTaxonomyMutation) OldJobID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldJobID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldJobID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldJobID: %w", err)
+	}
+	return oldValue.JobID, nil
+}
+
+// AddJobID adds i to the "job_id" field.
+func (m *JobTaxonomyMutation) AddJobID(i int) {
+	if m.addjob_id != nil {
+		*m.addjob_id += i
+	} else {
+		m.addjob_id = &i
+	}
+}
+
+// AddedJobID returns the value that was added to the "job_id" field in this mutation.
+func (m *JobTaxonomyMutation) AddedJobID() (r int, exists bool) {
+	v := m.addjob_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetJobID resets all changes to the "job_id" field.
+func (m *JobTaxonomyMutation) ResetJobID() {
+	m.job_id = nil
+	m.addjob_id = nil
+}
+
+// SetTaxonomyID sets the "taxonomy_id" field.
+func (m *JobTaxonomyMutation) SetTaxonomyID(i int) {
+	m.taxonomy_id = &i
+	m.addtaxonomy_id = nil
+}
+
+// TaxonomyID returns the value of the "taxonomy_id" field in the mutation.
+func (m *JobTaxonomyMutation) TaxonomyID() (r int, exists bool) {
+	v := m.taxonomy_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTaxonomyID returns the old "taxonomy_id" field's value of the JobTaxonomy entity.
+// If the JobTaxonomy object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *JobTaxonomyMutation) OldTaxonomyID(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTaxonomyID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTaxonomyID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTaxonomyID: %w", err)
+	}
+	return oldValue.TaxonomyID, nil
+}
+
+// AddTaxonomyID adds i to the "taxonomy_id" field.
+func (m *JobTaxonomyMutation) AddTaxonomyID(i int) {
+	if m.addtaxonomy_id != nil {
+		*m.addtaxonomy_id += i
+	} else {
+		m.addtaxonomy_id = &i
+	}
+}
+
+// AddedTaxonomyID returns the value that was added to the "taxonomy_id" field in this mutation.
+func (m *JobTaxonomyMutation) AddedTaxonomyID() (r int, exists bool) {
+	v := m.addtaxonomy_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTaxonomyID resets all changes to the "taxonomy_id" field.
+func (m *JobTaxonomyMutation) ResetTaxonomyID() {
+	m.taxonomy_id = nil
+	m.addtaxonomy_id = nil
+}
+
+// Where appends a list predicates to the JobTaxonomyMutation builder.
+func (m *JobTaxonomyMutation) Where(ps ...predicate.JobTaxonomy) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the JobTaxonomyMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *JobTaxonomyMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.JobTaxonomy, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *JobTaxonomyMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *JobTaxonomyMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (JobTaxonomy).
+func (m *JobTaxonomyMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *JobTaxonomyMutation) Fields() []string {
+	fields := make([]string, 0, 2)
+	if m.job_id != nil {
+		fields = append(fields, jobtaxonomy.FieldJobID)
+	}
+	if m.taxonomy_id != nil {
+		fields = append(fields, jobtaxonomy.FieldTaxonomyID)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *JobTaxonomyMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case jobtaxonomy.FieldJobID:
+		return m.JobID()
+	case jobtaxonomy.FieldTaxonomyID:
+		return m.TaxonomyID()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *JobTaxonomyMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case jobtaxonomy.FieldJobID:
+		return m.OldJobID(ctx)
+	case jobtaxonomy.FieldTaxonomyID:
+		return m.OldTaxonomyID(ctx)
+	}
+	return nil, fmt.Errorf("unknown JobTaxonomy field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *JobTaxonomyMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case jobtaxonomy.FieldJobID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetJobID(v)
+		return nil
+	case jobtaxonomy.FieldTaxonomyID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTaxonomyID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown JobTaxonomy field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *JobTaxonomyMutation) AddedFields() []string {
+	var fields []string
+	if m.addjob_id != nil {
+		fields = append(fields, jobtaxonomy.FieldJobID)
+	}
+	if m.addtaxonomy_id != nil {
+		fields = append(fields, jobtaxonomy.FieldTaxonomyID)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *JobTaxonomyMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case jobtaxonomy.FieldJobID:
+		return m.AddedJobID()
+	case jobtaxonomy.FieldTaxonomyID:
+		return m.AddedTaxonomyID()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *JobTaxonomyMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case jobtaxonomy.FieldJobID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddJobID(v)
+		return nil
+	case jobtaxonomy.FieldTaxonomyID:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTaxonomyID(v)
+		return nil
+	}
+	return fmt.Errorf("unknown JobTaxonomy numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *JobTaxonomyMutation) ClearedFields() []string {
+	return nil
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *JobTaxonomyMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *JobTaxonomyMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown JobTaxonomy nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *JobTaxonomyMutation) ResetField(name string) error {
+	switch name {
+	case jobtaxonomy.FieldJobID:
+		m.ResetJobID()
+		return nil
+	case jobtaxonomy.FieldTaxonomyID:
+		m.ResetTaxonomyID()
+		return nil
+	}
+	return fmt.Errorf("unknown JobTaxonomy field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *JobTaxonomyMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *JobTaxonomyMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *JobTaxonomyMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *JobTaxonomyMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *JobTaxonomyMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *JobTaxonomyMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *JobTaxonomyMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown JobTaxonomy unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *JobTaxonomyMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown JobTaxonomy edge %s", name)
+}
+
+// TaxonomyMutation represents an operation that mutates the Taxonomy nodes in the graph.
+type TaxonomyMutation struct {
+	config
+	op            Op
+	typ           string
+	id            *int
+	parent_id     *string
+	title         *string
+	slug          *string
+	_type         *string
+	clearedFields map[string]struct{}
+	done          bool
+	oldValue      func(context.Context) (*Taxonomy, error)
+	predicates    []predicate.Taxonomy
+}
+
+var _ ent.Mutation = (*TaxonomyMutation)(nil)
+
+// taxonomyOption allows management of the mutation configuration using functional options.
+type taxonomyOption func(*TaxonomyMutation)
+
+// newTaxonomyMutation creates new mutation for the Taxonomy entity.
+func newTaxonomyMutation(c config, op Op, opts ...taxonomyOption) *TaxonomyMutation {
+	m := &TaxonomyMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeTaxonomy,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withTaxonomyID sets the ID field of the mutation.
+func withTaxonomyID(id int) taxonomyOption {
+	return func(m *TaxonomyMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Taxonomy
+		)
+		m.oldValue = func(ctx context.Context) (*Taxonomy, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Taxonomy.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withTaxonomy sets the old Taxonomy of the mutation.
+func withTaxonomy(node *Taxonomy) taxonomyOption {
+	return func(m *TaxonomyMutation) {
+		m.oldValue = func(context.Context) (*Taxonomy, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m TaxonomyMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m TaxonomyMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *TaxonomyMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *TaxonomyMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().Taxonomy.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetParentID sets the "parent_id" field.
+func (m *TaxonomyMutation) SetParentID(s string) {
+	m.parent_id = &s
+}
+
+// ParentID returns the value of the "parent_id" field in the mutation.
+func (m *TaxonomyMutation) ParentID() (r string, exists bool) {
+	v := m.parent_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldParentID returns the old "parent_id" field's value of the Taxonomy entity.
+// If the Taxonomy object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaxonomyMutation) OldParentID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldParentID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldParentID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldParentID: %w", err)
+	}
+	return oldValue.ParentID, nil
+}
+
+// ClearParentID clears the value of the "parent_id" field.
+func (m *TaxonomyMutation) ClearParentID() {
+	m.parent_id = nil
+	m.clearedFields[taxonomy.FieldParentID] = struct{}{}
+}
+
+// ParentIDCleared returns if the "parent_id" field was cleared in this mutation.
+func (m *TaxonomyMutation) ParentIDCleared() bool {
+	_, ok := m.clearedFields[taxonomy.FieldParentID]
+	return ok
+}
+
+// ResetParentID resets all changes to the "parent_id" field.
+func (m *TaxonomyMutation) ResetParentID() {
+	m.parent_id = nil
+	delete(m.clearedFields, taxonomy.FieldParentID)
+}
+
+// SetTitle sets the "title" field.
+func (m *TaxonomyMutation) SetTitle(s string) {
+	m.title = &s
+}
+
+// Title returns the value of the "title" field in the mutation.
+func (m *TaxonomyMutation) Title() (r string, exists bool) {
+	v := m.title
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTitle returns the old "title" field's value of the Taxonomy entity.
+// If the Taxonomy object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaxonomyMutation) OldTitle(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTitle requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+	}
+	return oldValue.Title, nil
+}
+
+// ClearTitle clears the value of the "title" field.
+func (m *TaxonomyMutation) ClearTitle() {
+	m.title = nil
+	m.clearedFields[taxonomy.FieldTitle] = struct{}{}
+}
+
+// TitleCleared returns if the "title" field was cleared in this mutation.
+func (m *TaxonomyMutation) TitleCleared() bool {
+	_, ok := m.clearedFields[taxonomy.FieldTitle]
+	return ok
+}
+
+// ResetTitle resets all changes to the "title" field.
+func (m *TaxonomyMutation) ResetTitle() {
+	m.title = nil
+	delete(m.clearedFields, taxonomy.FieldTitle)
+}
+
+// SetSlug sets the "slug" field.
+func (m *TaxonomyMutation) SetSlug(s string) {
+	m.slug = &s
+}
+
+// Slug returns the value of the "slug" field in the mutation.
+func (m *TaxonomyMutation) Slug() (r string, exists bool) {
+	v := m.slug
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSlug returns the old "slug" field's value of the Taxonomy entity.
+// If the Taxonomy object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaxonomyMutation) OldSlug(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSlug is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSlug requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSlug: %w", err)
+	}
+	return oldValue.Slug, nil
+}
+
+// ClearSlug clears the value of the "slug" field.
+func (m *TaxonomyMutation) ClearSlug() {
+	m.slug = nil
+	m.clearedFields[taxonomy.FieldSlug] = struct{}{}
+}
+
+// SlugCleared returns if the "slug" field was cleared in this mutation.
+func (m *TaxonomyMutation) SlugCleared() bool {
+	_, ok := m.clearedFields[taxonomy.FieldSlug]
+	return ok
+}
+
+// ResetSlug resets all changes to the "slug" field.
+func (m *TaxonomyMutation) ResetSlug() {
+	m.slug = nil
+	delete(m.clearedFields, taxonomy.FieldSlug)
+}
+
+// SetType sets the "type" field.
+func (m *TaxonomyMutation) SetType(s string) {
+	m._type = &s
+}
+
+// GetType returns the value of the "type" field in the mutation.
+func (m *TaxonomyMutation) GetType() (r string, exists bool) {
+	v := m._type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldType returns the old "type" field's value of the Taxonomy entity.
+// If the Taxonomy object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *TaxonomyMutation) OldType(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldType: %w", err)
+	}
+	return oldValue.Type, nil
+}
+
+// ClearType clears the value of the "type" field.
+func (m *TaxonomyMutation) ClearType() {
+	m._type = nil
+	m.clearedFields[taxonomy.FieldType] = struct{}{}
+}
+
+// TypeCleared returns if the "type" field was cleared in this mutation.
+func (m *TaxonomyMutation) TypeCleared() bool {
+	_, ok := m.clearedFields[taxonomy.FieldType]
+	return ok
+}
+
+// ResetType resets all changes to the "type" field.
+func (m *TaxonomyMutation) ResetType() {
+	m._type = nil
+	delete(m.clearedFields, taxonomy.FieldType)
+}
+
+// Where appends a list predicates to the TaxonomyMutation builder.
+func (m *TaxonomyMutation) Where(ps ...predicate.Taxonomy) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the TaxonomyMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *TaxonomyMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.Taxonomy, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *TaxonomyMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *TaxonomyMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (Taxonomy).
+func (m *TaxonomyMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *TaxonomyMutation) Fields() []string {
+	fields := make([]string, 0, 4)
+	if m.parent_id != nil {
+		fields = append(fields, taxonomy.FieldParentID)
+	}
+	if m.title != nil {
+		fields = append(fields, taxonomy.FieldTitle)
+	}
+	if m.slug != nil {
+		fields = append(fields, taxonomy.FieldSlug)
+	}
+	if m._type != nil {
+		fields = append(fields, taxonomy.FieldType)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *TaxonomyMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case taxonomy.FieldParentID:
+		return m.ParentID()
+	case taxonomy.FieldTitle:
+		return m.Title()
+	case taxonomy.FieldSlug:
+		return m.Slug()
+	case taxonomy.FieldType:
+		return m.GetType()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *TaxonomyMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case taxonomy.FieldParentID:
+		return m.OldParentID(ctx)
+	case taxonomy.FieldTitle:
+		return m.OldTitle(ctx)
+	case taxonomy.FieldSlug:
+		return m.OldSlug(ctx)
+	case taxonomy.FieldType:
+		return m.OldType(ctx)
+	}
+	return nil, fmt.Errorf("unknown Taxonomy field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TaxonomyMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case taxonomy.FieldParentID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetParentID(v)
+		return nil
+	case taxonomy.FieldTitle:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTitle(v)
+		return nil
+	case taxonomy.FieldSlug:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSlug(v)
+		return nil
+	case taxonomy.FieldType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetType(v)
+		return nil
+	}
+	return fmt.Errorf("unknown Taxonomy field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *TaxonomyMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *TaxonomyMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *TaxonomyMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown Taxonomy numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *TaxonomyMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(taxonomy.FieldParentID) {
+		fields = append(fields, taxonomy.FieldParentID)
+	}
+	if m.FieldCleared(taxonomy.FieldTitle) {
+		fields = append(fields, taxonomy.FieldTitle)
+	}
+	if m.FieldCleared(taxonomy.FieldSlug) {
+		fields = append(fields, taxonomy.FieldSlug)
+	}
+	if m.FieldCleared(taxonomy.FieldType) {
+		fields = append(fields, taxonomy.FieldType)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *TaxonomyMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *TaxonomyMutation) ClearField(name string) error {
+	switch name {
+	case taxonomy.FieldParentID:
+		m.ClearParentID()
+		return nil
+	case taxonomy.FieldTitle:
+		m.ClearTitle()
+		return nil
+	case taxonomy.FieldSlug:
+		m.ClearSlug()
+		return nil
+	case taxonomy.FieldType:
+		m.ClearType()
+		return nil
+	}
+	return fmt.Errorf("unknown Taxonomy nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *TaxonomyMutation) ResetField(name string) error {
+	switch name {
+	case taxonomy.FieldParentID:
+		m.ResetParentID()
+		return nil
+	case taxonomy.FieldTitle:
+		m.ResetTitle()
+		return nil
+	case taxonomy.FieldSlug:
+		m.ResetSlug()
+		return nil
+	case taxonomy.FieldType:
+		m.ResetType()
+		return nil
+	}
+	return fmt.Errorf("unknown Taxonomy field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *TaxonomyMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *TaxonomyMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *TaxonomyMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *TaxonomyMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *TaxonomyMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *TaxonomyMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *TaxonomyMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown Taxonomy unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *TaxonomyMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown Taxonomy edge %s", name)
 }

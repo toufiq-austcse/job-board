@@ -13,23 +13,78 @@ definitions:
       message:
         type: string
     type: object
-  req.TodoCreateReqModel:
+  req.LoginReqModel:
     properties:
-      status:
+      email:
         type: string
-      title:
+      password:
         type: string
     required:
-    - status
-    - title
+    - email
+    - password
     type: object
-  res.TodoRespData:
+  req.SignUpReqModel:
     properties:
-      id:
+      email:
         type: string
-      status:
+      name:
         type: string
-      title:
+      password:
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  res.CompanyInfo:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+    type: object
+  res.LoginResModel:
+    properties:
+      company_info:
+        $ref: '#/definitions/res.CompanyInfo'
+        type: object
+      token:
+        $ref: '#/definitions/res.Token'
+        type: object
+    type: object
+  res.SignUpResModel:
+    properties:
+      company_info:
+        $ref: '#/definitions/res.CompanyInfo'
+        type: object
+      token:
+        $ref: '#/definitions/res.Token'
+        type: object
+    type: object
+  res.Token:
+    properties:
+      access_token:
+        type: string
+      expire_at:
+        type: integer
+    type: object
+  res.TokenVerificationRes:
+    properties:
+      email:
+        type: string
+      established:
+        type: string
+      industry:
+        type: string
+      location:
+        type: string
+      logo_url:
+        type: string
+      name:
+        type: string
+      size:
+        type: string
+      website_url:
         type: string
     type: object
 info:
@@ -48,40 +103,22 @@ paths:
       summary: Health Check
       tags:
       - Index
-  /api/v1/todos:
-    get:
-      consumes:
-      - application/json
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            allOf:
-            - $ref: '#/definitions/api_response.Response'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/res.TodoRespData'
-                  type: array
-              type: object
-      summary: List Todo
-      tags:
-      - Todo
+  /api/v1/auth/login:
     post:
       consumes:
       - application/json
       parameters:
-      - description: Create Todo Payload
+      - description: Login Req Body
         in: body
         name: request
         required: true
         schema:
-          $ref: '#/definitions/req.TodoCreateReqModel'
+          $ref: '#/definitions/req.LoginReqModel'
       produces:
       - application/json
       responses:
+        "200":
+          description: ""
         "201":
           description: Created
           schema:
@@ -89,21 +126,15 @@ paths:
             - $ref: '#/definitions/api_response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/res.TodoRespData'
+                  $ref: '#/definitions/res.LoginResModel'
               type: object
-      summary: Create Todo
+      summary: Company Login
       tags:
-      - Todo
-  /api/v1/todos/{id}:
+      - Auth
+  /api/v1/auth/me:
     get:
       consumes:
       - application/json
-      parameters:
-      - description: todo id
-        in: path
-        name: id
-        required: true
-        type: string
       produces:
       - application/json
       responses:
@@ -114,9 +145,44 @@ paths:
             - $ref: '#/definitions/api_response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/res.TodoRespData'
+                  $ref: '#/definitions/res.TokenVerificationRes'
               type: object
-      summary: List Todo
+      security:
+      - Authorization: []
+      summary: Token Verification
       tags:
-      - Todo
+      - Auth
+  /api/v1/auth/signup:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Signup Req Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/req.SignUpReqModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/api_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/res.SignUpResModel'
+              type: object
+      summary: Company SignUp
+      tags:
+      - Auth
+securityDefinitions:
+  Authorization:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

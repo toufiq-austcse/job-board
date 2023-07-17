@@ -2,7 +2,18 @@
 
 package runtime
 
-// The schema-stitching logic is generated in github.com/toufiq-austcse/go-api-boilerplate/ent/runtime.go
+import (
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/company"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/schema"
+)
+
+// The init function reads all schema descriptors with runtime code
+// (default values, validators, hooks and policies) and stitches it
+// to their package variables.
+func init() {
+	companyHooks := schema.Company{}.Hooks()
+	company.Hooks[0] = companyHooks[0]
+}
 
 const (
 	Version = "v0.12.3"                                         // Version of ent codegen.

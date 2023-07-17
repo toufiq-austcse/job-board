@@ -8,13 +8,15 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/google/uuid"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent/migrate"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
-	"github.com/toufiq-austcse/go-api-boilerplate/ent/todo"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/company"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/job"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/jobtaxonomy"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/taxonomy"
 )
 
 // Client is the client that holds all ent builders.
@@ -22,8 +24,14 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
-	// Todo is the client for interacting with the Todo builders.
-	Todo *TodoClient
+	// Company is the client for interacting with the Company builders.
+	Company *CompanyClient
+	// Job is the client for interacting with the Job builders.
+	Job *JobClient
+	// JobTaxonomy is the client for interacting with the JobTaxonomy builders.
+	JobTaxonomy *JobTaxonomyClient
+	// Taxonomy is the client for interacting with the Taxonomy builders.
+	Taxonomy *TaxonomyClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -37,7 +45,10 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
-	c.Todo = NewTodoClient(c.config)
+	c.Company = NewCompanyClient(c.config)
+	c.Job = NewJobClient(c.config)
+	c.JobTaxonomy = NewJobTaxonomyClient(c.config)
+	c.Taxonomy = NewTaxonomyClient(c.config)
 }
 
 type (
@@ -118,9 +129,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		Todo:   NewTodoClient(cfg),
+		ctx:         ctx,
+		config:      cfg,
+		Company:     NewCompanyClient(cfg),
+		Job:         NewJobClient(cfg),
+		JobTaxonomy: NewJobTaxonomyClient(cfg),
+		Taxonomy:    NewTaxonomyClient(cfg),
 	}, nil
 }
 
@@ -138,16 +152,19 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:    ctx,
-		config: cfg,
-		Todo:   NewTodoClient(cfg),
+		ctx:         ctx,
+		config:      cfg,
+		Company:     NewCompanyClient(cfg),
+		Job:         NewJobClient(cfg),
+		JobTaxonomy: NewJobTaxonomyClient(cfg),
+		Taxonomy:    NewTaxonomyClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Todo.
+//		Company.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -169,111 +186,123 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Todo.Use(hooks...)
+	c.Company.Use(hooks...)
+	c.Job.Use(hooks...)
+	c.JobTaxonomy.Use(hooks...)
+	c.Taxonomy.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.Todo.Intercept(interceptors...)
+	c.Company.Intercept(interceptors...)
+	c.Job.Intercept(interceptors...)
+	c.JobTaxonomy.Intercept(interceptors...)
+	c.Taxonomy.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
-	case *TodoMutation:
-		return c.Todo.mutate(ctx, m)
+	case *CompanyMutation:
+		return c.Company.mutate(ctx, m)
+	case *JobMutation:
+		return c.Job.mutate(ctx, m)
+	case *JobTaxonomyMutation:
+		return c.JobTaxonomy.mutate(ctx, m)
+	case *TaxonomyMutation:
+		return c.Taxonomy.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
 	}
 }
 
-// TodoClient is a client for the Todo schema.
-type TodoClient struct {
+// CompanyClient is a client for the Company schema.
+type CompanyClient struct {
 	config
 }
 
-// NewTodoClient returns a client for the Todo from the given config.
-func NewTodoClient(c config) *TodoClient {
-	return &TodoClient{config: c}
+// NewCompanyClient returns a client for the Company from the given config.
+func NewCompanyClient(c config) *CompanyClient {
+	return &CompanyClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `todo.Hooks(f(g(h())))`.
-func (c *TodoClient) Use(hooks ...Hook) {
-	c.hooks.Todo = append(c.hooks.Todo, hooks...)
+// A call to `Use(f, g, h)` equals to `company.Hooks(f(g(h())))`.
+func (c *CompanyClient) Use(hooks ...Hook) {
+	c.hooks.Company = append(c.hooks.Company, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `todo.Intercept(f(g(h())))`.
-func (c *TodoClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Todo = append(c.inters.Todo, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `company.Intercept(f(g(h())))`.
+func (c *CompanyClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Company = append(c.inters.Company, interceptors...)
 }
 
-// Create returns a builder for creating a Todo entity.
-func (c *TodoClient) Create() *TodoCreate {
-	mutation := newTodoMutation(c.config, OpCreate)
-	return &TodoCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a Company entity.
+func (c *CompanyClient) Create() *CompanyCreate {
+	mutation := newCompanyMutation(c.config, OpCreate)
+	return &CompanyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of Todo entities.
-func (c *TodoClient) CreateBulk(builders ...*TodoCreate) *TodoCreateBulk {
-	return &TodoCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of Company entities.
+func (c *CompanyClient) CreateBulk(builders ...*CompanyCreate) *CompanyCreateBulk {
+	return &CompanyCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for Todo.
-func (c *TodoClient) Update() *TodoUpdate {
-	mutation := newTodoMutation(c.config, OpUpdate)
-	return &TodoUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for Company.
+func (c *CompanyClient) Update() *CompanyUpdate {
+	mutation := newCompanyMutation(c.config, OpUpdate)
+	return &CompanyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *TodoClient) UpdateOne(t *Todo) *TodoUpdateOne {
-	mutation := newTodoMutation(c.config, OpUpdateOne, withTodo(t))
-	return &TodoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *CompanyClient) UpdateOne(co *Company) *CompanyUpdateOne {
+	mutation := newCompanyMutation(c.config, OpUpdateOne, withCompany(co))
+	return &CompanyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *TodoClient) UpdateOneID(id uuid.UUID) *TodoUpdateOne {
-	mutation := newTodoMutation(c.config, OpUpdateOne, withTodoID(id))
-	return &TodoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *CompanyClient) UpdateOneID(id int) *CompanyUpdateOne {
+	mutation := newCompanyMutation(c.config, OpUpdateOne, withCompanyID(id))
+	return &CompanyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for Todo.
-func (c *TodoClient) Delete() *TodoDelete {
-	mutation := newTodoMutation(c.config, OpDelete)
-	return &TodoDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for Company.
+func (c *CompanyClient) Delete() *CompanyDelete {
+	mutation := newCompanyMutation(c.config, OpDelete)
+	return &CompanyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *TodoClient) DeleteOne(t *Todo) *TodoDeleteOne {
-	return c.DeleteOneID(t.ID)
+func (c *CompanyClient) DeleteOne(co *Company) *CompanyDeleteOne {
+	return c.DeleteOneID(co.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *TodoClient) DeleteOneID(id uuid.UUID) *TodoDeleteOne {
-	builder := c.Delete().Where(todo.ID(id))
+func (c *CompanyClient) DeleteOneID(id int) *CompanyDeleteOne {
+	builder := c.Delete().Where(company.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &TodoDeleteOne{builder}
+	return &CompanyDeleteOne{builder}
 }
 
-// Query returns a query builder for Todo.
-func (c *TodoClient) Query() *TodoQuery {
-	return &TodoQuery{
+// Query returns a query builder for Company.
+func (c *CompanyClient) Query() *CompanyQuery {
+	return &CompanyQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeTodo},
+		ctx:    &QueryContext{Type: TypeCompany},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a Todo entity by its id.
-func (c *TodoClient) Get(ctx context.Context, id uuid.UUID) (*Todo, error) {
-	return c.Query().Where(todo.ID(id)).Only(ctx)
+// Get returns a Company entity by its id.
+func (c *CompanyClient) Get(ctx context.Context, id int) (*Company, error) {
+	return c.Query().Where(company.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *TodoClient) GetX(ctx context.Context, id uuid.UUID) *Todo {
+func (c *CompanyClient) GetX(ctx context.Context, id int) *Company {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -282,36 +311,391 @@ func (c *TodoClient) GetX(ctx context.Context, id uuid.UUID) *Todo {
 }
 
 // Hooks returns the client hooks.
-func (c *TodoClient) Hooks() []Hook {
-	return c.hooks.Todo
+func (c *CompanyClient) Hooks() []Hook {
+	hooks := c.hooks.Company
+	return append(hooks[:len(hooks):len(hooks)], company.Hooks[:]...)
 }
 
 // Interceptors returns the client interceptors.
-func (c *TodoClient) Interceptors() []Interceptor {
-	return c.inters.Todo
+func (c *CompanyClient) Interceptors() []Interceptor {
+	return c.inters.Company
 }
 
-func (c *TodoClient) mutate(ctx context.Context, m *TodoMutation) (Value, error) {
+func (c *CompanyClient) mutate(ctx context.Context, m *CompanyMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&TodoCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&CompanyCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&TodoUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&CompanyUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&TodoUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&CompanyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&TodoDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&CompanyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("ent: unknown Todo mutation op: %q", m.Op())
+		return nil, fmt.Errorf("ent: unknown Company mutation op: %q", m.Op())
+	}
+}
+
+// JobClient is a client for the Job schema.
+type JobClient struct {
+	config
+}
+
+// NewJobClient returns a client for the Job from the given config.
+func NewJobClient(c config) *JobClient {
+	return &JobClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `job.Hooks(f(g(h())))`.
+func (c *JobClient) Use(hooks ...Hook) {
+	c.hooks.Job = append(c.hooks.Job, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `job.Intercept(f(g(h())))`.
+func (c *JobClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Job = append(c.inters.Job, interceptors...)
+}
+
+// Create returns a builder for creating a Job entity.
+func (c *JobClient) Create() *JobCreate {
+	mutation := newJobMutation(c.config, OpCreate)
+	return &JobCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Job entities.
+func (c *JobClient) CreateBulk(builders ...*JobCreate) *JobCreateBulk {
+	return &JobCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Job.
+func (c *JobClient) Update() *JobUpdate {
+	mutation := newJobMutation(c.config, OpUpdate)
+	return &JobUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *JobClient) UpdateOne(j *Job) *JobUpdateOne {
+	mutation := newJobMutation(c.config, OpUpdateOne, withJob(j))
+	return &JobUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *JobClient) UpdateOneID(id int) *JobUpdateOne {
+	mutation := newJobMutation(c.config, OpUpdateOne, withJobID(id))
+	return &JobUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Job.
+func (c *JobClient) Delete() *JobDelete {
+	mutation := newJobMutation(c.config, OpDelete)
+	return &JobDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *JobClient) DeleteOne(j *Job) *JobDeleteOne {
+	return c.DeleteOneID(j.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *JobClient) DeleteOneID(id int) *JobDeleteOne {
+	builder := c.Delete().Where(job.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &JobDeleteOne{builder}
+}
+
+// Query returns a query builder for Job.
+func (c *JobClient) Query() *JobQuery {
+	return &JobQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeJob},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Job entity by its id.
+func (c *JobClient) Get(ctx context.Context, id int) (*Job, error) {
+	return c.Query().Where(job.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *JobClient) GetX(ctx context.Context, id int) *Job {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *JobClient) Hooks() []Hook {
+	return c.hooks.Job
+}
+
+// Interceptors returns the client interceptors.
+func (c *JobClient) Interceptors() []Interceptor {
+	return c.inters.Job
+}
+
+func (c *JobClient) mutate(ctx context.Context, m *JobMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&JobCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&JobUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&JobUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&JobDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Job mutation op: %q", m.Op())
+	}
+}
+
+// JobTaxonomyClient is a client for the JobTaxonomy schema.
+type JobTaxonomyClient struct {
+	config
+}
+
+// NewJobTaxonomyClient returns a client for the JobTaxonomy from the given config.
+func NewJobTaxonomyClient(c config) *JobTaxonomyClient {
+	return &JobTaxonomyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `jobtaxonomy.Hooks(f(g(h())))`.
+func (c *JobTaxonomyClient) Use(hooks ...Hook) {
+	c.hooks.JobTaxonomy = append(c.hooks.JobTaxonomy, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `jobtaxonomy.Intercept(f(g(h())))`.
+func (c *JobTaxonomyClient) Intercept(interceptors ...Interceptor) {
+	c.inters.JobTaxonomy = append(c.inters.JobTaxonomy, interceptors...)
+}
+
+// Create returns a builder for creating a JobTaxonomy entity.
+func (c *JobTaxonomyClient) Create() *JobTaxonomyCreate {
+	mutation := newJobTaxonomyMutation(c.config, OpCreate)
+	return &JobTaxonomyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of JobTaxonomy entities.
+func (c *JobTaxonomyClient) CreateBulk(builders ...*JobTaxonomyCreate) *JobTaxonomyCreateBulk {
+	return &JobTaxonomyCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for JobTaxonomy.
+func (c *JobTaxonomyClient) Update() *JobTaxonomyUpdate {
+	mutation := newJobTaxonomyMutation(c.config, OpUpdate)
+	return &JobTaxonomyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *JobTaxonomyClient) UpdateOne(jt *JobTaxonomy) *JobTaxonomyUpdateOne {
+	mutation := newJobTaxonomyMutation(c.config, OpUpdateOne, withJobTaxonomy(jt))
+	return &JobTaxonomyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *JobTaxonomyClient) UpdateOneID(id int) *JobTaxonomyUpdateOne {
+	mutation := newJobTaxonomyMutation(c.config, OpUpdateOne, withJobTaxonomyID(id))
+	return &JobTaxonomyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for JobTaxonomy.
+func (c *JobTaxonomyClient) Delete() *JobTaxonomyDelete {
+	mutation := newJobTaxonomyMutation(c.config, OpDelete)
+	return &JobTaxonomyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *JobTaxonomyClient) DeleteOne(jt *JobTaxonomy) *JobTaxonomyDeleteOne {
+	return c.DeleteOneID(jt.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *JobTaxonomyClient) DeleteOneID(id int) *JobTaxonomyDeleteOne {
+	builder := c.Delete().Where(jobtaxonomy.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &JobTaxonomyDeleteOne{builder}
+}
+
+// Query returns a query builder for JobTaxonomy.
+func (c *JobTaxonomyClient) Query() *JobTaxonomyQuery {
+	return &JobTaxonomyQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeJobTaxonomy},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a JobTaxonomy entity by its id.
+func (c *JobTaxonomyClient) Get(ctx context.Context, id int) (*JobTaxonomy, error) {
+	return c.Query().Where(jobtaxonomy.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *JobTaxonomyClient) GetX(ctx context.Context, id int) *JobTaxonomy {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *JobTaxonomyClient) Hooks() []Hook {
+	return c.hooks.JobTaxonomy
+}
+
+// Interceptors returns the client interceptors.
+func (c *JobTaxonomyClient) Interceptors() []Interceptor {
+	return c.inters.JobTaxonomy
+}
+
+func (c *JobTaxonomyClient) mutate(ctx context.Context, m *JobTaxonomyMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&JobTaxonomyCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&JobTaxonomyUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&JobTaxonomyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&JobTaxonomyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown JobTaxonomy mutation op: %q", m.Op())
+	}
+}
+
+// TaxonomyClient is a client for the Taxonomy schema.
+type TaxonomyClient struct {
+	config
+}
+
+// NewTaxonomyClient returns a client for the Taxonomy from the given config.
+func NewTaxonomyClient(c config) *TaxonomyClient {
+	return &TaxonomyClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `taxonomy.Hooks(f(g(h())))`.
+func (c *TaxonomyClient) Use(hooks ...Hook) {
+	c.hooks.Taxonomy = append(c.hooks.Taxonomy, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `taxonomy.Intercept(f(g(h())))`.
+func (c *TaxonomyClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Taxonomy = append(c.inters.Taxonomy, interceptors...)
+}
+
+// Create returns a builder for creating a Taxonomy entity.
+func (c *TaxonomyClient) Create() *TaxonomyCreate {
+	mutation := newTaxonomyMutation(c.config, OpCreate)
+	return &TaxonomyCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Taxonomy entities.
+func (c *TaxonomyClient) CreateBulk(builders ...*TaxonomyCreate) *TaxonomyCreateBulk {
+	return &TaxonomyCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Taxonomy.
+func (c *TaxonomyClient) Update() *TaxonomyUpdate {
+	mutation := newTaxonomyMutation(c.config, OpUpdate)
+	return &TaxonomyUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *TaxonomyClient) UpdateOne(t *Taxonomy) *TaxonomyUpdateOne {
+	mutation := newTaxonomyMutation(c.config, OpUpdateOne, withTaxonomy(t))
+	return &TaxonomyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *TaxonomyClient) UpdateOneID(id int) *TaxonomyUpdateOne {
+	mutation := newTaxonomyMutation(c.config, OpUpdateOne, withTaxonomyID(id))
+	return &TaxonomyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Taxonomy.
+func (c *TaxonomyClient) Delete() *TaxonomyDelete {
+	mutation := newTaxonomyMutation(c.config, OpDelete)
+	return &TaxonomyDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *TaxonomyClient) DeleteOne(t *Taxonomy) *TaxonomyDeleteOne {
+	return c.DeleteOneID(t.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *TaxonomyClient) DeleteOneID(id int) *TaxonomyDeleteOne {
+	builder := c.Delete().Where(taxonomy.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &TaxonomyDeleteOne{builder}
+}
+
+// Query returns a query builder for Taxonomy.
+func (c *TaxonomyClient) Query() *TaxonomyQuery {
+	return &TaxonomyQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeTaxonomy},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Taxonomy entity by its id.
+func (c *TaxonomyClient) Get(ctx context.Context, id int) (*Taxonomy, error) {
+	return c.Query().Where(taxonomy.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *TaxonomyClient) GetX(ctx context.Context, id int) *Taxonomy {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *TaxonomyClient) Hooks() []Hook {
+	return c.hooks.Taxonomy
+}
+
+// Interceptors returns the client interceptors.
+func (c *TaxonomyClient) Interceptors() []Interceptor {
+	return c.inters.Taxonomy
+}
+
+func (c *TaxonomyClient) mutate(ctx context.Context, m *TaxonomyMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&TaxonomyCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&TaxonomyUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&TaxonomyUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&TaxonomyDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Taxonomy mutation op: %q", m.Op())
 	}
 }
 
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Todo []ent.Hook
+		Company, Job, JobTaxonomy, Taxonomy []ent.Hook
 	}
 	inters struct {
-		Todo []ent.Interceptor
+		Company, Job, JobTaxonomy, Taxonomy []ent.Interceptor
 	}
 )

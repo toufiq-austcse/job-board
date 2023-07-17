@@ -12,7 +12,10 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/toufiq-austcse/go-api-boilerplate/ent/todo"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/company"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/job"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/jobtaxonomy"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/taxonomy"
 )
 
 // ent aliases to avoid import conflicts in user's code.
@@ -73,7 +76,10 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			todo.Table: todo.ValidColumn,
+			company.Table:     company.ValidColumn,
+			job.Table:         job.ValidColumn,
+			jobtaxonomy.Table: jobtaxonomy.ValidColumn,
+			taxonomy.Table:    taxonomy.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

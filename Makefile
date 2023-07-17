@@ -17,3 +17,5 @@ docker_up:
 
 docker_down:
 	 docker compose down
+generate_ent:
+	go generate ./ent

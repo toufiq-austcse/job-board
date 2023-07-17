@@ -8,6 +8,11 @@ import (
 
 const configPath = ".env"
 
+//@securityDefinitions.apikey Authorization
+//@in header
+//@name Authorization
+//@persistAuthorization true
+
 func main() {
 	err := app.Run(configPath)
 	if err != nil {

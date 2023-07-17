@@ -8,9 +8,10 @@ import (
 	"github.com/toufiq-austcse/go-api-boilerplate/config"
 	"github.com/toufiq-austcse/go-api-boilerplate/di"
 	"github.com/toufiq-austcse/go-api-boilerplate/docs"
+	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/auth/controller"
+	authRouter "github.com/toufiq-austcse/go-api-boilerplate/internal/api/auth/router"
+	companyService "github.com/toufiq-austcse/go-api-boilerplate/internal/api/company/service"
 	indexRouter "github.com/toufiq-austcse/go-api-boilerplate/internal/api/index/router"
-	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/todo/controller"
-	todoRouter "github.com/toufiq-austcse/go-api-boilerplate/internal/api/todo/router"
 	"github.com/toufiq-austcse/go-api-boilerplate/internal/server"
 	"time"
 )
@@ -25,13 +26,14 @@ func Run(configPath string) error {
 		return err
 	}
 	err = container.Invoke(func(
-		controller *controller.TodoController,
+		authController *controller.AuthController,
+		companyService *companyService.CompanyService,
 	) {
 		indexRouterGroup := apiServer.GinEngine.Group("")
 		indexRouter.Setup(indexRouterGroup)
 
-		v1RouterGroup := apiServer.GinEngine.Group("api/v1")
-		todoRouter.Setup(v1RouterGroup, controller)
+		authV1RouterGroup := apiServer.GinEngine.Group("api/v1/auth")
+		authRouter.Setup(authV1RouterGroup, authController, companyService)
 	})
 	if err != nil {
 		return err
