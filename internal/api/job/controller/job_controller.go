@@ -1,22 +1,23 @@
 package controller
 
-import (
-	"github.com/gin-gonic/gin"
-	"github.com/toufiq-austcse/go-api-boilerplate/config"
-	"net/http"
-)
+import "github.com/gin-gonic/gin"
 
-// Index hosts godoc
-// @Summary  Health Check
-// @Tags     Index
+type JobController struct {
+}
+
+func NewJobController() *JobController {
+	return &JobController{}
+}
+
+// Create hosts godoc
+// @Summary  Create New Job
+// @Param    request  body      req.SignUpReqModel  true  "Signup Req Body"
+// @Tags     Jobs
 // @Accept   json
 // @Produce  json
 // @Success  200
-// @Router   / [get]
-func Index() gin.HandlerFunc {
-	return func(context *gin.Context) {
-		context.JSON(http.StatusOK, gin.H{
-			"message": config.AppConfig.APP_NAME + " is Running",
-		})
-	}
+// @Router   /api/v1/jobs [post]
+// @Success  201      {object}  api_response.Response{data=res.SignUpResModel}
+func (controller *JobController) Create(context *gin.Context) {
+
 }

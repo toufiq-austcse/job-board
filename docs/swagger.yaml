@@ -61,6 +61,17 @@ definitions:
         $ref: '#/definitions/res.Token'
         type: object
     type: object
+  res.TaxonomyInListRes:
+    properties:
+      id:
+        type: integer
+      slug:
+        type: string
+      title:
+        type: string
+      type:
+        type: string
+    type: object
   res.Token:
     properties:
       access_token:
@@ -180,6 +191,62 @@ paths:
       summary: Company SignUp
       tags:
       - Auth
+  /api/v1/jobs:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Signup Req Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/req.SignUpReqModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/api_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/res.SignUpResModel'
+              type: object
+      summary: Create New Job
+      tags:
+      - Jobs
+  /api/v1/taxonomies:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: list taxonomies by category
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/api_response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/res.TaxonomyInListRes'
+                  type: array
+              type: object
+      summary: Get taxonomies
+      tags:
+      - Taxonomy
 securityDefinitions:
   Authorization:
     in: header

@@ -2,10 +2,18 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/index/controller"
+	companyService "github.com/toufiq-austcse/go-api-boilerplate/internal/api/company/service"
+	jobController "github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/controller"
+	"github.com/toufiq-austcse/go-api-boilerplate/internal/middleware"
 )
 
-func Setup(group *gin.RouterGroup) {
-	group.GET("", controller.Index())
+func SetupJobRoutes(group *gin.RouterGroup, controller *jobController.JobController, companyService *companyService.CompanyService) {
+	group.Use(middleware.AuthMiddleware(companyService))
+	group.POST("", controller.Create)
+
+}
+
+func SetupTaxonomyRoutes(group *gin.RouterGroup, controller *jobController.TaxonomyController) {
+	group.GET("", controller.ListTaxonomies)
 
 }
