@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -17,6 +18,34 @@ type JobTaxonomyCreate struct {
 	config
 	mutation *JobTaxonomyMutation
 	hooks    []Hook
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (jtc *JobTaxonomyCreate) SetCreatedAt(t time.Time) *JobTaxonomyCreate {
+	jtc.mutation.SetCreatedAt(t)
+	return jtc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (jtc *JobTaxonomyCreate) SetNillableCreatedAt(t *time.Time) *JobTaxonomyCreate {
+	if t != nil {
+		jtc.SetCreatedAt(*t)
+	}
+	return jtc
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (jtc *JobTaxonomyCreate) SetUpdatedAt(t time.Time) *JobTaxonomyCreate {
+	jtc.mutation.SetUpdatedAt(t)
+	return jtc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (jtc *JobTaxonomyCreate) SetNillableUpdatedAt(t *time.Time) *JobTaxonomyCreate {
+	if t != nil {
+		jtc.SetUpdatedAt(*t)
+	}
+	return jtc
 }
 
 // SetJobID sets the "job_id" field.
@@ -38,6 +67,7 @@ func (jtc *JobTaxonomyCreate) Mutation() *JobTaxonomyMutation {
 
 // Save creates the JobTaxonomy in the database.
 func (jtc *JobTaxonomyCreate) Save(ctx context.Context) (*JobTaxonomy, error) {
+	jtc.defaults()
 	return withHooks(ctx, jtc.sqlSave, jtc.mutation, jtc.hooks)
 }
 
@@ -63,8 +93,26 @@ func (jtc *JobTaxonomyCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (jtc *JobTaxonomyCreate) defaults() {
+	if _, ok := jtc.mutation.CreatedAt(); !ok {
+		v := jobtaxonomy.DefaultCreatedAt()
+		jtc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := jtc.mutation.UpdatedAt(); !ok {
+		v := jobtaxonomy.DefaultUpdatedAt()
+		jtc.mutation.SetUpdatedAt(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (jtc *JobTaxonomyCreate) check() error {
+	if _, ok := jtc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "JobTaxonomy.created_at"`)}
+	}
+	if _, ok := jtc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "JobTaxonomy.updated_at"`)}
+	}
 	if _, ok := jtc.mutation.JobID(); !ok {
 		return &ValidationError{Name: "job_id", err: errors.New(`ent: missing required field "JobTaxonomy.job_id"`)}
 	}
@@ -97,6 +145,14 @@ func (jtc *JobTaxonomyCreate) createSpec() (*JobTaxonomy, *sqlgraph.CreateSpec) 
 		_node = &JobTaxonomy{config: jtc.config}
 		_spec = sqlgraph.NewCreateSpec(jobtaxonomy.Table, sqlgraph.NewFieldSpec(jobtaxonomy.FieldID, field.TypeInt))
 	)
+	if value, ok := jtc.mutation.CreatedAt(); ok {
+		_spec.SetField(jobtaxonomy.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := jtc.mutation.UpdatedAt(); ok {
+		_spec.SetField(jobtaxonomy.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
+	}
 	if value, ok := jtc.mutation.JobID(); ok {
 		_spec.SetField(jobtaxonomy.FieldJobID, field.TypeInt, value)
 		_node.JobID = value
@@ -122,6 +178,7 @@ func (jtcb *JobTaxonomyCreateBulk) Save(ctx context.Context) ([]*JobTaxonomy, er
 	for i := range jtcb.builders {
 		func(i int, root context.Context) {
 			builder := jtcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*JobTaxonomyMutation)
 				if !ok {

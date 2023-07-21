@@ -4,7 +4,9 @@ package ent
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -16,6 +18,34 @@ type TaxonomyCreate struct {
 	config
 	mutation *TaxonomyMutation
 	hooks    []Hook
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (tc *TaxonomyCreate) SetCreatedAt(t time.Time) *TaxonomyCreate {
+	tc.mutation.SetCreatedAt(t)
+	return tc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (tc *TaxonomyCreate) SetNillableCreatedAt(t *time.Time) *TaxonomyCreate {
+	if t != nil {
+		tc.SetCreatedAt(*t)
+	}
+	return tc
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (tc *TaxonomyCreate) SetUpdatedAt(t time.Time) *TaxonomyCreate {
+	tc.mutation.SetUpdatedAt(t)
+	return tc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (tc *TaxonomyCreate) SetNillableUpdatedAt(t *time.Time) *TaxonomyCreate {
+	if t != nil {
+		tc.SetUpdatedAt(*t)
+	}
+	return tc
 }
 
 // SetParentID sets the "parent_id" field.
@@ -81,6 +111,7 @@ func (tc *TaxonomyCreate) Mutation() *TaxonomyMutation {
 
 // Save creates the Taxonomy in the database.
 func (tc *TaxonomyCreate) Save(ctx context.Context) (*Taxonomy, error) {
+	tc.defaults()
 	return withHooks(ctx, tc.sqlSave, tc.mutation, tc.hooks)
 }
 
@@ -106,8 +137,26 @@ func (tc *TaxonomyCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (tc *TaxonomyCreate) defaults() {
+	if _, ok := tc.mutation.CreatedAt(); !ok {
+		v := taxonomy.DefaultCreatedAt()
+		tc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := tc.mutation.UpdatedAt(); !ok {
+		v := taxonomy.DefaultUpdatedAt()
+		tc.mutation.SetUpdatedAt(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (tc *TaxonomyCreate) check() error {
+	if _, ok := tc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Taxonomy.created_at"`)}
+	}
+	if _, ok := tc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Taxonomy.updated_at"`)}
+	}
 	return nil
 }
 
@@ -134,6 +183,14 @@ func (tc *TaxonomyCreate) createSpec() (*Taxonomy, *sqlgraph.CreateSpec) {
 		_node = &Taxonomy{config: tc.config}
 		_spec = sqlgraph.NewCreateSpec(taxonomy.Table, sqlgraph.NewFieldSpec(taxonomy.FieldID, field.TypeInt))
 	)
+	if value, ok := tc.mutation.CreatedAt(); ok {
+		_spec.SetField(taxonomy.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := tc.mutation.UpdatedAt(); ok {
+		_spec.SetField(taxonomy.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
+	}
 	if value, ok := tc.mutation.ParentID(); ok {
 		_spec.SetField(taxonomy.FieldParentID, field.TypeString, value)
 		_node.ParentID = value
@@ -167,6 +224,7 @@ func (tcb *TaxonomyCreateBulk) Save(ctx context.Context) ([]*Taxonomy, error) {
 	for i := range tcb.builders {
 		func(i int, root context.Context) {
 			builder := tcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*TaxonomyMutation)
 				if !ok {

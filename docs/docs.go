@@ -181,6 +181,11 @@ var doc = `{
         },
         "/api/v1/jobs": {
             "post": {
+                "security": [
+                    {
+                        "Authorization": []
+                    }
+                ],
                 "consumes": [
                     "application/json"
                 ],
@@ -198,7 +203,7 @@ var doc = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/req.SignUpReqModel"
+                            "$ref": "#/definitions/req.CreateJobReqModel"
                         }
                     }
                 ],
@@ -217,7 +222,7 @@ var doc = `{
                                     "type": "object",
                                     "properties": {
                                         "data": {
-                                            "$ref": "#/definitions/res.SignUpResModel"
+                                            "$ref": "#/definitions/res.JobRes"
                                         }
                                     }
                                 }
@@ -298,6 +303,32 @@ var doc = `{
                 }
             }
         },
+        "req.CreateJobReqModel": {
+            "type": "object",
+            "required": [
+                "apply_to",
+                "description",
+                "taxonomies",
+                "title"
+            ],
+            "properties": {
+                "apply_to": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "taxonomies": {
+                    "type": "array",
+                    "items": {
+                        "type": "integer"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "req.LoginReqModel": {
             "type": "object",
             "required": [
@@ -339,6 +370,46 @@ var doc = `{
                     "type": "string"
                 },
                 "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "res.JobRes": {
+            "type": "object",
+            "properties": {
+                "apply_to": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "taxonomies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/res.JobTaxonomy"
+                    }
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "res.JobTaxonomy": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "type": {
                     "type": "string"
                 }
             }

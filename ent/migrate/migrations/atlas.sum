@@ -1,2 +1,4 @@
-h1:jAcY1tIWmh5LZXrlXGye4lMtJ/0lPInhrCivaUcMBtE=
-20230715153035_initial_migration.sql h1:N30OiEIZSM+NSBianDhzJH8zMohgKFPtzKFp+PTKPwI=
+h1:E65ULySutkc65QccOxwsnQGCr3GQ4v+18wvg/DxkdTE=
+20230721174401_initial_migration.sql h1:OS0bjVAUr8t3/Pt/fS/afAezwy7y60dCF+gDZLzZ7sc=
+20230721175219_make_slug_in_job_field_unique.sql h1:MSAQ3nGZeUZvVi4gdkpEcseJ7g2tZri8WzGUMuDJ3ZA=
+20230721190901_add_status_field_in_job_table.sql h1:PHJ5G3Nj9LaDMdwNXRxzDIHM2wjbnZIH6OfiiSz27vk=

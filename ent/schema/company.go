@@ -60,6 +60,12 @@ func (Company) Hooks() []ent.Hook {
 	}
 }
 
+func (Company) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		TimeStamp{},
+	}
+}
+
 func hashAndSaltPassword(password []byte) (hashPassword string, err error) {
 	hashedPass, err := bcrypt.GenerateFromPassword(password, bcrypt.MinCost)
 	if err != nil {

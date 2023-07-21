@@ -13,6 +13,24 @@ definitions:
       message:
         type: string
     type: object
+  req.CreateJobReqModel:
+    properties:
+      apply_to:
+        type: string
+      description:
+        type: string
+      taxonomies:
+        items:
+          type: integer
+        type: array
+      title:
+        type: string
+    required:
+    - apply_to
+    - description
+    - taxonomies
+    - title
+    type: object
   req.LoginReqModel:
     properties:
       email:
@@ -41,6 +59,32 @@ definitions:
       email:
         type: string
       name:
+        type: string
+    type: object
+  res.JobRes:
+    properties:
+      apply_to:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      taxonomies:
+        items:
+          $ref: '#/definitions/res.JobTaxonomy'
+        type: array
+      title:
+        type: string
+    type: object
+  res.JobTaxonomy:
+    properties:
+      id:
+        type: integer
+      slug:
+        type: string
+      title:
+        type: string
+      type:
         type: string
     type: object
   res.LoginResModel:
@@ -201,7 +245,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/req.SignUpReqModel'
+          $ref: '#/definitions/req.CreateJobReqModel'
       produces:
       - application/json
       responses:
@@ -214,8 +258,10 @@ paths:
             - $ref: '#/definitions/api_response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/res.SignUpResModel'
+                  $ref: '#/definitions/res.JobRes'
               type: object
+      security:
+      - Authorization: []
       summary: Create New Job
       tags:
       - Jobs

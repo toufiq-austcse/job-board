@@ -261,12 +261,12 @@ func (jtq *JobTaxonomyQuery) Clone() *JobTaxonomyQuery {
 // Example:
 //
 //	var v []struct {
-//		JobID int `json:"job_id,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.JobTaxonomy.Query().
-//		GroupBy(jobtaxonomy.FieldJobID).
+//		GroupBy(jobtaxonomy.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (jtq *JobTaxonomyQuery) GroupBy(field string, fields ...string) *JobTaxonomyGroupBy {
@@ -284,11 +284,11 @@ func (jtq *JobTaxonomyQuery) GroupBy(field string, fields ...string) *JobTaxonom
 // Example:
 //
 //	var v []struct {
-//		JobID int `json:"job_id,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.JobTaxonomy.Query().
-//		Select(jobtaxonomy.FieldJobID).
+//		Select(jobtaxonomy.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (jtq *JobTaxonomyQuery) Select(fields ...string) *JobTaxonomySelect {
 	jtq.ctx.Fields = append(jtq.ctx.Fields, fields...)

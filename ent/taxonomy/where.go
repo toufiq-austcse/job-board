@@ -3,6 +3,8 @@
 package taxonomy
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent/predicate"
 )
@@ -52,6 +54,16 @@ func IDLTE(id int) predicate.Taxonomy {
 	return predicate.Taxonomy(sql.FieldLTE(FieldID, id))
 }
 
+// CreatedAt applies equality check predicate on the "created_at" field. It's identical to CreatedAtEQ.
+func CreatedAt(v time.Time) predicate.Taxonomy {
+	return predicate.Taxonomy(sql.FieldEQ(FieldCreatedAt, v))
+}
+
+// UpdatedAt applies equality check predicate on the "updated_at" field. It's identical to UpdatedAtEQ.
+func UpdatedAt(v time.Time) predicate.Taxonomy {
+	return predicate.Taxonomy(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
 // ParentID applies equality check predicate on the "parent_id" field. It's identical to ParentIDEQ.
 func ParentID(v string) predicate.Taxonomy {
 	return predicate.Taxonomy(sql.FieldEQ(FieldParentID, v))
@@ -70,6 +82,86 @@ func Slug(v string) predicate.Taxonomy {
 // Type applies equality check predicate on the "type" field. It's identical to TypeEQ.
 func Type(v string) predicate.Taxonomy {
 	return predicate.Taxonomy(sql.FieldEQ(FieldType, v))
+}
+
+// CreatedAtEQ applies the EQ predicate on the "created_at" field.
+func CreatedAtEQ(v time.Time) predicate.Taxonomy {
+	return predicate.Taxonomy(sql.FieldEQ(FieldCreatedAt, v))
+}
+
+// CreatedAtNEQ applies the NEQ predicate on the "created_at" field.
+func CreatedAtNEQ(v time.Time) predicate.Taxonomy {
+	return predicate.Taxonomy(sql.FieldNEQ(FieldCreatedAt, v))
+}
+
+// CreatedAtIn applies the In predicate on the "created_at" field.
+func CreatedAtIn(vs ...time.Time) predicate.Taxonomy {
+	return predicate.Taxonomy(sql.FieldIn(FieldCreatedAt, vs...))
+}
+
+// CreatedAtNotIn applies the NotIn predicate on the "created_at" field.
+func CreatedAtNotIn(vs ...time.Time) predicate.Taxonomy {
+	return predicate.Taxonomy(sql.FieldNotIn(FieldCreatedAt, vs...))
+}
+
+// CreatedAtGT applies the GT predicate on the "created_at" field.
+func CreatedAtGT(v time.Time) predicate.Taxonomy {
+	return predicate.Taxonomy(sql.FieldGT(FieldCreatedAt, v))
+}
+
+// CreatedAtGTE applies the GTE predicate on the "created_at" field.
+func CreatedAtGTE(v time.Time) predicate.Taxonomy {
+	return predicate.Taxonomy(sql.FieldGTE(FieldCreatedAt, v))
+}
+
+// CreatedAtLT applies the LT predicate on the "created_at" field.
+func CreatedAtLT(v time.Time) predicate.Taxonomy {
+	return predicate.Taxonomy(sql.FieldLT(FieldCreatedAt, v))
+}
+
+// CreatedAtLTE applies the LTE predicate on the "created_at" field.
+func CreatedAtLTE(v time.Time) predicate.Taxonomy {
+	return predicate.Taxonomy(sql.FieldLTE(FieldCreatedAt, v))
+}
+
+// UpdatedAtEQ applies the EQ predicate on the "updated_at" field.
+func UpdatedAtEQ(v time.Time) predicate.Taxonomy {
+	return predicate.Taxonomy(sql.FieldEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtNEQ applies the NEQ predicate on the "updated_at" field.
+func UpdatedAtNEQ(v time.Time) predicate.Taxonomy {
+	return predicate.Taxonomy(sql.FieldNEQ(FieldUpdatedAt, v))
+}
+
+// UpdatedAtIn applies the In predicate on the "updated_at" field.
+func UpdatedAtIn(vs ...time.Time) predicate.Taxonomy {
+	return predicate.Taxonomy(sql.FieldIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtNotIn applies the NotIn predicate on the "updated_at" field.
+func UpdatedAtNotIn(vs ...time.Time) predicate.Taxonomy {
+	return predicate.Taxonomy(sql.FieldNotIn(FieldUpdatedAt, vs...))
+}
+
+// UpdatedAtGT applies the GT predicate on the "updated_at" field.
+func UpdatedAtGT(v time.Time) predicate.Taxonomy {
+	return predicate.Taxonomy(sql.FieldGT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtGTE applies the GTE predicate on the "updated_at" field.
+func UpdatedAtGTE(v time.Time) predicate.Taxonomy {
+	return predicate.Taxonomy(sql.FieldGTE(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLT applies the LT predicate on the "updated_at" field.
+func UpdatedAtLT(v time.Time) predicate.Taxonomy {
+	return predicate.Taxonomy(sql.FieldLT(FieldUpdatedAt, v))
+}
+
+// UpdatedAtLTE applies the LTE predicate on the "updated_at" field.
+func UpdatedAtLTE(v time.Time) predicate.Taxonomy {
+	return predicate.Taxonomy(sql.FieldLTE(FieldUpdatedAt, v))
 }
 
 // ParentIDEQ applies the EQ predicate on the "parent_id" field.

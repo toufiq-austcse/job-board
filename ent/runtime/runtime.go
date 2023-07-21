@@ -3,16 +3,83 @@
 package runtime
 
 import (
+	"time"
+
 	"github.com/toufiq-austcse/go-api-boilerplate/ent/company"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/job"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/jobtaxonomy"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent/schema"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/taxonomy"
 )
 
 // The init function reads all schema descriptors with runtime code
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	companyMixin := schema.Company{}.Mixin()
 	companyHooks := schema.Company{}.Hooks()
 	company.Hooks[0] = companyHooks[0]
+	companyMixinFields0 := companyMixin[0].Fields()
+	_ = companyMixinFields0
+	companyFields := schema.Company{}.Fields()
+	_ = companyFields
+	// companyDescCreatedAt is the schema descriptor for created_at field.
+	companyDescCreatedAt := companyMixinFields0[0].Descriptor()
+	// company.DefaultCreatedAt holds the default value on creation for the created_at field.
+	company.DefaultCreatedAt = companyDescCreatedAt.Default.(func() time.Time)
+	// companyDescUpdatedAt is the schema descriptor for updated_at field.
+	companyDescUpdatedAt := companyMixinFields0[1].Descriptor()
+	// company.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	company.DefaultUpdatedAt = companyDescUpdatedAt.Default.(func() time.Time)
+	// company.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	company.UpdateDefaultUpdatedAt = companyDescUpdatedAt.UpdateDefault.(func() time.Time)
+	jobMixin := schema.Job{}.Mixin()
+	jobHooks := schema.Job{}.Hooks()
+	job.Hooks[0] = jobHooks[0]
+	jobMixinFields0 := jobMixin[0].Fields()
+	_ = jobMixinFields0
+	jobFields := schema.Job{}.Fields()
+	_ = jobFields
+	// jobDescCreatedAt is the schema descriptor for created_at field.
+	jobDescCreatedAt := jobMixinFields0[0].Descriptor()
+	// job.DefaultCreatedAt holds the default value on creation for the created_at field.
+	job.DefaultCreatedAt = jobDescCreatedAt.Default.(func() time.Time)
+	// jobDescUpdatedAt is the schema descriptor for updated_at field.
+	jobDescUpdatedAt := jobMixinFields0[1].Descriptor()
+	// job.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	job.DefaultUpdatedAt = jobDescUpdatedAt.Default.(func() time.Time)
+	// job.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	job.UpdateDefaultUpdatedAt = jobDescUpdatedAt.UpdateDefault.(func() time.Time)
+	jobtaxonomyMixin := schema.JobTaxonomy{}.Mixin()
+	jobtaxonomyMixinFields0 := jobtaxonomyMixin[0].Fields()
+	_ = jobtaxonomyMixinFields0
+	jobtaxonomyFields := schema.JobTaxonomy{}.Fields()
+	_ = jobtaxonomyFields
+	// jobtaxonomyDescCreatedAt is the schema descriptor for created_at field.
+	jobtaxonomyDescCreatedAt := jobtaxonomyMixinFields0[0].Descriptor()
+	// jobtaxonomy.DefaultCreatedAt holds the default value on creation for the created_at field.
+	jobtaxonomy.DefaultCreatedAt = jobtaxonomyDescCreatedAt.Default.(func() time.Time)
+	// jobtaxonomyDescUpdatedAt is the schema descriptor for updated_at field.
+	jobtaxonomyDescUpdatedAt := jobtaxonomyMixinFields0[1].Descriptor()
+	// jobtaxonomy.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	jobtaxonomy.DefaultUpdatedAt = jobtaxonomyDescUpdatedAt.Default.(func() time.Time)
+	// jobtaxonomy.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	jobtaxonomy.UpdateDefaultUpdatedAt = jobtaxonomyDescUpdatedAt.UpdateDefault.(func() time.Time)
+	taxonomyMixin := schema.Taxonomy{}.Mixin()
+	taxonomyMixinFields0 := taxonomyMixin[0].Fields()
+	_ = taxonomyMixinFields0
+	taxonomyFields := schema.Taxonomy{}.Fields()
+	_ = taxonomyFields
+	// taxonomyDescCreatedAt is the schema descriptor for created_at field.
+	taxonomyDescCreatedAt := taxonomyMixinFields0[0].Descriptor()
+	// taxonomy.DefaultCreatedAt holds the default value on creation for the created_at field.
+	taxonomy.DefaultCreatedAt = taxonomyDescCreatedAt.Default.(func() time.Time)
+	// taxonomyDescUpdatedAt is the schema descriptor for updated_at field.
+	taxonomyDescUpdatedAt := taxonomyMixinFields0[1].Descriptor()
+	// taxonomy.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	taxonomy.DefaultUpdatedAt = taxonomyDescUpdatedAt.Default.(func() time.Time)
+	// taxonomy.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	taxonomy.UpdateDefaultUpdatedAt = taxonomyDescUpdatedAt.UpdateDefault.(func() time.Time)
 }
 
 const (

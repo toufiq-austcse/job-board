@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
@@ -17,6 +18,34 @@ type CompanyCreate struct {
 	config
 	mutation *CompanyMutation
 	hooks    []Hook
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (cc *CompanyCreate) SetCreatedAt(t time.Time) *CompanyCreate {
+	cc.mutation.SetCreatedAt(t)
+	return cc
+}
+
+// SetNillableCreatedAt sets the "created_at" field if the given value is not nil.
+func (cc *CompanyCreate) SetNillableCreatedAt(t *time.Time) *CompanyCreate {
+	if t != nil {
+		cc.SetCreatedAt(*t)
+	}
+	return cc
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (cc *CompanyCreate) SetUpdatedAt(t time.Time) *CompanyCreate {
+	cc.mutation.SetUpdatedAt(t)
+	return cc
+}
+
+// SetNillableUpdatedAt sets the "updated_at" field if the given value is not nil.
+func (cc *CompanyCreate) SetNillableUpdatedAt(t *time.Time) *CompanyCreate {
+	if t != nil {
+		cc.SetUpdatedAt(*t)
+	}
+	return cc
 }
 
 // SetName sets the "name" field.
@@ -170,6 +199,9 @@ func (cc *CompanyCreate) Mutation() *CompanyMutation {
 
 // Save creates the Company in the database.
 func (cc *CompanyCreate) Save(ctx context.Context) (*Company, error) {
+	if err := cc.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, cc.sqlSave, cc.mutation, cc.hooks)
 }
 
@@ -195,8 +227,33 @@ func (cc *CompanyCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (cc *CompanyCreate) defaults() error {
+	if _, ok := cc.mutation.CreatedAt(); !ok {
+		if company.DefaultCreatedAt == nil {
+			return fmt.Errorf("ent: uninitialized company.DefaultCreatedAt (forgotten import ent/runtime?)")
+		}
+		v := company.DefaultCreatedAt()
+		cc.mutation.SetCreatedAt(v)
+	}
+	if _, ok := cc.mutation.UpdatedAt(); !ok {
+		if company.DefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized company.DefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
+		v := company.DefaultUpdatedAt()
+		cc.mutation.SetUpdatedAt(v)
+	}
+	return nil
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (cc *CompanyCreate) check() error {
+	if _, ok := cc.mutation.CreatedAt(); !ok {
+		return &ValidationError{Name: "created_at", err: errors.New(`ent: missing required field "Company.created_at"`)}
+	}
+	if _, ok := cc.mutation.UpdatedAt(); !ok {
+		return &ValidationError{Name: "updated_at", err: errors.New(`ent: missing required field "Company.updated_at"`)}
+	}
 	if _, ok := cc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Company.name"`)}
 	}
@@ -232,6 +289,14 @@ func (cc *CompanyCreate) createSpec() (*Company, *sqlgraph.CreateSpec) {
 		_node = &Company{config: cc.config}
 		_spec = sqlgraph.NewCreateSpec(company.Table, sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt))
 	)
+	if value, ok := cc.mutation.CreatedAt(); ok {
+		_spec.SetField(company.FieldCreatedAt, field.TypeTime, value)
+		_node.CreatedAt = value
+	}
+	if value, ok := cc.mutation.UpdatedAt(); ok {
+		_spec.SetField(company.FieldUpdatedAt, field.TypeTime, value)
+		_node.UpdatedAt = value
+	}
 	if value, ok := cc.mutation.Name(); ok {
 		_spec.SetField(company.FieldName, field.TypeString, value)
 		_node.Name = value
@@ -297,6 +362,7 @@ func (ccb *CompanyCreateBulk) Save(ctx context.Context) ([]*Company, error) {
 	for i := range ccb.builders {
 		func(i int, root context.Context) {
 			builder := ccb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*CompanyMutation)
 				if !ok {

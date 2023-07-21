@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -16,6 +17,10 @@ type JobTaxonomy struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// JobID holds the value of the "job_id" field.
 	JobID int `json:"job_id,omitempty"`
 	// TaxonomyID holds the value of the "taxonomy_id" field.
@@ -30,6 +35,8 @@ func (*JobTaxonomy) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case jobtaxonomy.FieldID, jobtaxonomy.FieldJobID, jobtaxonomy.FieldTaxonomyID:
 			values[i] = new(sql.NullInt64)
+		case jobtaxonomy.FieldCreatedAt, jobtaxonomy.FieldUpdatedAt:
+			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -51,6 +58,18 @@ func (jt *JobTaxonomy) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			jt.ID = int(value.Int64)
+		case jobtaxonomy.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				jt.CreatedAt = value.Time
+			}
+		case jobtaxonomy.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				jt.UpdatedAt = value.Time
+			}
 		case jobtaxonomy.FieldJobID:
 			if value, ok := values[i].(*sql.NullInt64); !ok {
 				return fmt.Errorf("unexpected type %T for field job_id", values[i])
@@ -99,6 +118,12 @@ func (jt *JobTaxonomy) String() string {
 	var builder strings.Builder
 	builder.WriteString("JobTaxonomy(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", jt.ID))
+	builder.WriteString("created_at=")
+	builder.WriteString(jt.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(jt.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("job_id=")
 	builder.WriteString(fmt.Sprintf("%v", jt.JobID))
 	builder.WriteString(", ")

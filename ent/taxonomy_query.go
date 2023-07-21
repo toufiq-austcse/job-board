@@ -261,12 +261,12 @@ func (tq *TaxonomyQuery) Clone() *TaxonomyQuery {
 // Example:
 //
 //	var v []struct {
-//		ParentID string `json:"parent_id,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Taxonomy.Query().
-//		GroupBy(taxonomy.FieldParentID).
+//		GroupBy(taxonomy.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (tq *TaxonomyQuery) GroupBy(field string, fields ...string) *TaxonomyGroupBy {
@@ -284,11 +284,11 @@ func (tq *TaxonomyQuery) GroupBy(field string, fields ...string) *TaxonomyGroupB
 // Example:
 //
 //	var v []struct {
-//		ParentID string `json:"parent_id,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.Taxonomy.Query().
-//		Select(taxonomy.FieldParentID).
+//		Select(taxonomy.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (tq *TaxonomyQuery) Select(fields ...string) *TaxonomySelect {
 	tq.ctx.Fields = append(tq.ctx.Fields, fields...)

@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -16,10 +17,16 @@ type Job struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Title holds the value of the "title" field.
 	Title string `json:"title,omitempty"`
 	// Slug holds the value of the "slug" field.
 	Slug string `json:"slug,omitempty"`
+	// Status holds the value of the "status" field.
+	Status *string `json:"status,omitempty"`
 	// ApplyTo holds the value of the "apply_to" field.
 	ApplyTo string `json:"apply_to,omitempty"`
 	// Description holds the value of the "description" field.
@@ -36,8 +43,10 @@ func (*Job) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case job.FieldID, job.FieldCompanyID:
 			values[i] = new(sql.NullInt64)
-		case job.FieldTitle, job.FieldSlug, job.FieldApplyTo, job.FieldDescription:
+		case job.FieldTitle, job.FieldSlug, job.FieldStatus, job.FieldApplyTo, job.FieldDescription:
 			values[i] = new(sql.NullString)
+		case job.FieldCreatedAt, job.FieldUpdatedAt:
+			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -59,6 +68,18 @@ func (j *Job) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			j.ID = int(value.Int64)
+		case job.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				j.CreatedAt = value.Time
+			}
+		case job.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				j.UpdatedAt = value.Time
+			}
 		case job.FieldTitle:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field title", values[i])
@@ -70,6 +91,13 @@ func (j *Job) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field slug", values[i])
 			} else if value.Valid {
 				j.Slug = value.String
+			}
+		case job.FieldStatus:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field status", values[i])
+			} else if value.Valid {
+				j.Status = new(string)
+				*j.Status = value.String
 			}
 		case job.FieldApplyTo:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -125,11 +153,22 @@ func (j *Job) String() string {
 	var builder strings.Builder
 	builder.WriteString("Job(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", j.ID))
+	builder.WriteString("created_at=")
+	builder.WriteString(j.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(j.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("title=")
 	builder.WriteString(j.Title)
 	builder.WriteString(", ")
 	builder.WriteString("slug=")
 	builder.WriteString(j.Slug)
+	builder.WriteString(", ")
+	if v := j.Status; v != nil {
+		builder.WriteString("status=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("apply_to=")
 	builder.WriteString(j.ApplyTo)

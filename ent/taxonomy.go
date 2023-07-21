@@ -5,6 +5,7 @@ package ent
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -16,6 +17,10 @@ type Taxonomy struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// CreatedAt holds the value of the "created_at" field.
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	// UpdatedAt holds the value of the "updated_at" field.
+	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// ParentID holds the value of the "parent_id" field.
 	ParentID string `json:"parent_id,omitempty"`
 	// Title holds the value of the "title" field.
@@ -36,6 +41,8 @@ func (*Taxonomy) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case taxonomy.FieldParentID, taxonomy.FieldTitle, taxonomy.FieldSlug, taxonomy.FieldType:
 			values[i] = new(sql.NullString)
+		case taxonomy.FieldCreatedAt, taxonomy.FieldUpdatedAt:
+			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -57,6 +64,18 @@ func (t *Taxonomy) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			t.ID = int(value.Int64)
+		case taxonomy.FieldCreatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field created_at", values[i])
+			} else if value.Valid {
+				t.CreatedAt = value.Time
+			}
+		case taxonomy.FieldUpdatedAt:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
+			} else if value.Valid {
+				t.UpdatedAt = value.Time
+			}
 		case taxonomy.FieldParentID:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field parent_id", values[i])
@@ -117,6 +136,12 @@ func (t *Taxonomy) String() string {
 	var builder strings.Builder
 	builder.WriteString("Taxonomy(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", t.ID))
+	builder.WriteString("created_at=")
+	builder.WriteString(t.CreatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
+	builder.WriteString("updated_at=")
+	builder.WriteString(t.UpdatedAt.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("parent_id=")
 	builder.WriteString(t.ParentID)
 	builder.WriteString(", ")

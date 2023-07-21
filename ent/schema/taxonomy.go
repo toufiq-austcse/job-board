@@ -24,3 +24,9 @@ func (Taxonomy) Fields() []ent.Field {
 func (Taxonomy) Edges() []ent.Edge {
 	return nil
 }
+
+func (Taxonomy) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		TimeStamp{},
+	}
+}

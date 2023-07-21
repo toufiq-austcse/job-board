@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -24,6 +25,12 @@ type CompanyUpdate struct {
 // Where appends a list predicates to the CompanyUpdate builder.
 func (cu *CompanyUpdate) Where(ps ...predicate.Company) *CompanyUpdate {
 	cu.mutation.Where(ps...)
+	return cu
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (cu *CompanyUpdate) SetUpdatedAt(t time.Time) *CompanyUpdate {
+	cu.mutation.SetUpdatedAt(t)
 	return cu
 }
 
@@ -232,6 +239,9 @@ func (cu *CompanyUpdate) Mutation() *CompanyMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (cu *CompanyUpdate) Save(ctx context.Context) (int, error) {
+	if err := cu.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, cu.sqlSave, cu.mutation, cu.hooks)
 }
 
@@ -257,6 +267,18 @@ func (cu *CompanyUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (cu *CompanyUpdate) defaults() error {
+	if _, ok := cu.mutation.UpdatedAt(); !ok {
+		if company.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized company.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
+		v := company.UpdateDefaultUpdatedAt()
+		cu.mutation.SetUpdatedAt(v)
+	}
+	return nil
+}
+
 func (cu *CompanyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := sqlgraph.NewUpdateSpec(company.Table, company.Columns, sqlgraph.NewFieldSpec(company.FieldID, field.TypeInt))
 	if ps := cu.mutation.predicates; len(ps) > 0 {
@@ -265,6 +287,9 @@ func (cu *CompanyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := cu.mutation.UpdatedAt(); ok {
+		_spec.SetField(company.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := cu.mutation.Name(); ok {
 		_spec.SetField(company.FieldName, field.TypeString, value)
@@ -347,6 +372,12 @@ type CompanyUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *CompanyMutation
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (cuo *CompanyUpdateOne) SetUpdatedAt(t time.Time) *CompanyUpdateOne {
+	cuo.mutation.SetUpdatedAt(t)
+	return cuo
 }
 
 // SetName sets the "name" field.
@@ -567,6 +598,9 @@ func (cuo *CompanyUpdateOne) Select(field string, fields ...string) *CompanyUpda
 
 // Save executes the query and returns the updated Company entity.
 func (cuo *CompanyUpdateOne) Save(ctx context.Context) (*Company, error) {
+	if err := cuo.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, cuo.sqlSave, cuo.mutation, cuo.hooks)
 }
 
@@ -590,6 +624,18 @@ func (cuo *CompanyUpdateOne) ExecX(ctx context.Context) {
 	if err := cuo.Exec(ctx); err != nil {
 		panic(err)
 	}
+}
+
+// defaults sets the default values of the builder before save.
+func (cuo *CompanyUpdateOne) defaults() error {
+	if _, ok := cuo.mutation.UpdatedAt(); !ok {
+		if company.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized company.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
+		v := company.UpdateDefaultUpdatedAt()
+		cuo.mutation.SetUpdatedAt(v)
+	}
+	return nil
 }
 
 func (cuo *CompanyUpdateOne) sqlSave(ctx context.Context) (_node *Company, err error) {
@@ -617,6 +663,9 @@ func (cuo *CompanyUpdateOne) sqlSave(ctx context.Context) (_node *Company, err e
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := cuo.mutation.UpdatedAt(); ok {
+		_spec.SetField(company.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := cuo.mutation.Name(); ok {
 		_spec.SetField(company.FieldName, field.TypeString, value)

@@ -22,3 +22,9 @@ func (JobTaxonomy) Fields() []ent.Field {
 func (JobTaxonomy) Edges() []ent.Edge {
 	return nil
 }
+
+func (JobTaxonomy) Mixin() []ent.Mixin {
+	return []ent.Mixin{
+		TimeStamp{},
+	}
+}

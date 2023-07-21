@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -24,6 +25,12 @@ type JobTaxonomyUpdate struct {
 // Where appends a list predicates to the JobTaxonomyUpdate builder.
 func (jtu *JobTaxonomyUpdate) Where(ps ...predicate.JobTaxonomy) *JobTaxonomyUpdate {
 	jtu.mutation.Where(ps...)
+	return jtu
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (jtu *JobTaxonomyUpdate) SetUpdatedAt(t time.Time) *JobTaxonomyUpdate {
+	jtu.mutation.SetUpdatedAt(t)
 	return jtu
 }
 
@@ -60,6 +67,7 @@ func (jtu *JobTaxonomyUpdate) Mutation() *JobTaxonomyMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (jtu *JobTaxonomyUpdate) Save(ctx context.Context) (int, error) {
+	jtu.defaults()
 	return withHooks(ctx, jtu.sqlSave, jtu.mutation, jtu.hooks)
 }
 
@@ -85,6 +93,14 @@ func (jtu *JobTaxonomyUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (jtu *JobTaxonomyUpdate) defaults() {
+	if _, ok := jtu.mutation.UpdatedAt(); !ok {
+		v := jobtaxonomy.UpdateDefaultUpdatedAt()
+		jtu.mutation.SetUpdatedAt(v)
+	}
+}
+
 func (jtu *JobTaxonomyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := sqlgraph.NewUpdateSpec(jobtaxonomy.Table, jobtaxonomy.Columns, sqlgraph.NewFieldSpec(jobtaxonomy.FieldID, field.TypeInt))
 	if ps := jtu.mutation.predicates; len(ps) > 0 {
@@ -93,6 +109,9 @@ func (jtu *JobTaxonomyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := jtu.mutation.UpdatedAt(); ok {
+		_spec.SetField(jobtaxonomy.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := jtu.mutation.JobID(); ok {
 		_spec.SetField(jobtaxonomy.FieldJobID, field.TypeInt, value)
@@ -124,6 +143,12 @@ type JobTaxonomyUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *JobTaxonomyMutation
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (jtuo *JobTaxonomyUpdateOne) SetUpdatedAt(t time.Time) *JobTaxonomyUpdateOne {
+	jtuo.mutation.SetUpdatedAt(t)
+	return jtuo
 }
 
 // SetJobID sets the "job_id" field.
@@ -172,6 +197,7 @@ func (jtuo *JobTaxonomyUpdateOne) Select(field string, fields ...string) *JobTax
 
 // Save executes the query and returns the updated JobTaxonomy entity.
 func (jtuo *JobTaxonomyUpdateOne) Save(ctx context.Context) (*JobTaxonomy, error) {
+	jtuo.defaults()
 	return withHooks(ctx, jtuo.sqlSave, jtuo.mutation, jtuo.hooks)
 }
 
@@ -194,6 +220,14 @@ func (jtuo *JobTaxonomyUpdateOne) Exec(ctx context.Context) error {
 func (jtuo *JobTaxonomyUpdateOne) ExecX(ctx context.Context) {
 	if err := jtuo.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (jtuo *JobTaxonomyUpdateOne) defaults() {
+	if _, ok := jtuo.mutation.UpdatedAt(); !ok {
+		v := jobtaxonomy.UpdateDefaultUpdatedAt()
+		jtuo.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -222,6 +256,9 @@ func (jtuo *JobTaxonomyUpdateOne) sqlSave(ctx context.Context) (_node *JobTaxono
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := jtuo.mutation.UpdatedAt(); ok {
+		_spec.SetField(jobtaxonomy.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := jtuo.mutation.JobID(); ok {
 		_spec.SetField(jobtaxonomy.FieldJobID, field.TypeInt, value)

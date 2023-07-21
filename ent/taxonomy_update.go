@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -24,6 +25,12 @@ type TaxonomyUpdate struct {
 // Where appends a list predicates to the TaxonomyUpdate builder.
 func (tu *TaxonomyUpdate) Where(ps ...predicate.Taxonomy) *TaxonomyUpdate {
 	tu.mutation.Where(ps...)
+	return tu
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (tu *TaxonomyUpdate) SetUpdatedAt(t time.Time) *TaxonomyUpdate {
+	tu.mutation.SetUpdatedAt(t)
 	return tu
 }
 
@@ -114,6 +121,7 @@ func (tu *TaxonomyUpdate) Mutation() *TaxonomyMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (tu *TaxonomyUpdate) Save(ctx context.Context) (int, error) {
+	tu.defaults()
 	return withHooks(ctx, tu.sqlSave, tu.mutation, tu.hooks)
 }
 
@@ -139,6 +147,14 @@ func (tu *TaxonomyUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (tu *TaxonomyUpdate) defaults() {
+	if _, ok := tu.mutation.UpdatedAt(); !ok {
+		v := taxonomy.UpdateDefaultUpdatedAt()
+		tu.mutation.SetUpdatedAt(v)
+	}
+}
+
 func (tu *TaxonomyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := sqlgraph.NewUpdateSpec(taxonomy.Table, taxonomy.Columns, sqlgraph.NewFieldSpec(taxonomy.FieldID, field.TypeInt))
 	if ps := tu.mutation.predicates; len(ps) > 0 {
@@ -147,6 +163,9 @@ func (tu *TaxonomyUpdate) sqlSave(ctx context.Context) (n int, err error) {
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := tu.mutation.UpdatedAt(); ok {
+		_spec.SetField(taxonomy.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := tu.mutation.ParentID(); ok {
 		_spec.SetField(taxonomy.FieldParentID, field.TypeString, value)
@@ -190,6 +209,12 @@ type TaxonomyUpdateOne struct {
 	fields   []string
 	hooks    []Hook
 	mutation *TaxonomyMutation
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (tuo *TaxonomyUpdateOne) SetUpdatedAt(t time.Time) *TaxonomyUpdateOne {
+	tuo.mutation.SetUpdatedAt(t)
+	return tuo
 }
 
 // SetParentID sets the "parent_id" field.
@@ -292,6 +317,7 @@ func (tuo *TaxonomyUpdateOne) Select(field string, fields ...string) *TaxonomyUp
 
 // Save executes the query and returns the updated Taxonomy entity.
 func (tuo *TaxonomyUpdateOne) Save(ctx context.Context) (*Taxonomy, error) {
+	tuo.defaults()
 	return withHooks(ctx, tuo.sqlSave, tuo.mutation, tuo.hooks)
 }
 
@@ -314,6 +340,14 @@ func (tuo *TaxonomyUpdateOne) Exec(ctx context.Context) error {
 func (tuo *TaxonomyUpdateOne) ExecX(ctx context.Context) {
 	if err := tuo.Exec(ctx); err != nil {
 		panic(err)
+	}
+}
+
+// defaults sets the default values of the builder before save.
+func (tuo *TaxonomyUpdateOne) defaults() {
+	if _, ok := tuo.mutation.UpdatedAt(); !ok {
+		v := taxonomy.UpdateDefaultUpdatedAt()
+		tuo.mutation.SetUpdatedAt(v)
 	}
 }
 
@@ -342,6 +376,9 @@ func (tuo *TaxonomyUpdateOne) sqlSave(ctx context.Context) (_node *Taxonomy, err
 				ps[i](selector)
 			}
 		}
+	}
+	if value, ok := tuo.mutation.UpdatedAt(); ok {
+		_spec.SetField(taxonomy.FieldUpdatedAt, field.TypeTime, value)
 	}
 	if value, ok := tuo.mutation.ParentID(); ok {
 		_spec.SetField(taxonomy.FieldParentID, field.TypeString, value)

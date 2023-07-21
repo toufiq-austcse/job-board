@@ -261,12 +261,12 @@ func (jq *JobQuery) Clone() *JobQuery {
 // Example:
 //
 //	var v []struct {
-//		Title string `json:"title,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Job.Query().
-//		GroupBy(job.FieldTitle).
+//		GroupBy(job.FieldCreatedAt).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (jq *JobQuery) GroupBy(field string, fields ...string) *JobGroupBy {
@@ -284,11 +284,11 @@ func (jq *JobQuery) GroupBy(field string, fields ...string) *JobGroupBy {
 // Example:
 //
 //	var v []struct {
-//		Title string `json:"title,omitempty"`
+//		CreatedAt time.Time `json:"created_at,omitempty"`
 //	}
 //
 //	client.Job.Query().
-//		Select(job.FieldTitle).
+//		Select(job.FieldCreatedAt).
 //		Scan(ctx, &v)
 func (jq *JobQuery) Select(fields ...string) *JobSelect {
 	jq.ctx.Fields = append(jq.ctx.Fields, fields...)

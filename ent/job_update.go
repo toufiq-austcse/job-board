@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -27,6 +28,12 @@ func (ju *JobUpdate) Where(ps ...predicate.Job) *JobUpdate {
 	return ju
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (ju *JobUpdate) SetUpdatedAt(t time.Time) *JobUpdate {
+	ju.mutation.SetUpdatedAt(t)
+	return ju
+}
+
 // SetTitle sets the "title" field.
 func (ju *JobUpdate) SetTitle(s string) *JobUpdate {
 	ju.mutation.SetTitle(s)
@@ -36,6 +43,12 @@ func (ju *JobUpdate) SetTitle(s string) *JobUpdate {
 // SetSlug sets the "slug" field.
 func (ju *JobUpdate) SetSlug(s string) *JobUpdate {
 	ju.mutation.SetSlug(s)
+	return ju
+}
+
+// SetStatus sets the "status" field.
+func (ju *JobUpdate) SetStatus(s string) *JobUpdate {
+	ju.mutation.SetStatus(s)
 	return ju
 }
 
@@ -71,6 +84,9 @@ func (ju *JobUpdate) Mutation() *JobMutation {
 
 // Save executes the query and returns the number of nodes affected by the update operation.
 func (ju *JobUpdate) Save(ctx context.Context) (int, error) {
+	if err := ju.defaults(); err != nil {
+		return 0, err
+	}
 	return withHooks(ctx, ju.sqlSave, ju.mutation, ju.hooks)
 }
 
@@ -96,6 +112,18 @@ func (ju *JobUpdate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (ju *JobUpdate) defaults() error {
+	if _, ok := ju.mutation.UpdatedAt(); !ok {
+		if job.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized job.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
+		v := job.UpdateDefaultUpdatedAt()
+		ju.mutation.SetUpdatedAt(v)
+	}
+	return nil
+}
+
 func (ju *JobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	_spec := sqlgraph.NewUpdateSpec(job.Table, job.Columns, sqlgraph.NewFieldSpec(job.FieldID, field.TypeInt))
 	if ps := ju.mutation.predicates; len(ps) > 0 {
@@ -105,11 +133,17 @@ func (ju *JobUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := ju.mutation.UpdatedAt(); ok {
+		_spec.SetField(job.FieldUpdatedAt, field.TypeTime, value)
+	}
 	if value, ok := ju.mutation.Title(); ok {
 		_spec.SetField(job.FieldTitle, field.TypeString, value)
 	}
 	if value, ok := ju.mutation.Slug(); ok {
 		_spec.SetField(job.FieldSlug, field.TypeString, value)
+	}
+	if value, ok := ju.mutation.Status(); ok {
+		_spec.SetField(job.FieldStatus, field.TypeString, value)
 	}
 	if value, ok := ju.mutation.ApplyTo(); ok {
 		_spec.SetField(job.FieldApplyTo, field.TypeString, value)
@@ -143,6 +177,12 @@ type JobUpdateOne struct {
 	mutation *JobMutation
 }
 
+// SetUpdatedAt sets the "updated_at" field.
+func (juo *JobUpdateOne) SetUpdatedAt(t time.Time) *JobUpdateOne {
+	juo.mutation.SetUpdatedAt(t)
+	return juo
+}
+
 // SetTitle sets the "title" field.
 func (juo *JobUpdateOne) SetTitle(s string) *JobUpdateOne {
 	juo.mutation.SetTitle(s)
@@ -152,6 +192,12 @@ func (juo *JobUpdateOne) SetTitle(s string) *JobUpdateOne {
 // SetSlug sets the "slug" field.
 func (juo *JobUpdateOne) SetSlug(s string) *JobUpdateOne {
 	juo.mutation.SetSlug(s)
+	return juo
+}
+
+// SetStatus sets the "status" field.
+func (juo *JobUpdateOne) SetStatus(s string) *JobUpdateOne {
+	juo.mutation.SetStatus(s)
 	return juo
 }
 
@@ -200,6 +246,9 @@ func (juo *JobUpdateOne) Select(field string, fields ...string) *JobUpdateOne {
 
 // Save executes the query and returns the updated Job entity.
 func (juo *JobUpdateOne) Save(ctx context.Context) (*Job, error) {
+	if err := juo.defaults(); err != nil {
+		return nil, err
+	}
 	return withHooks(ctx, juo.sqlSave, juo.mutation, juo.hooks)
 }
 
@@ -223,6 +272,18 @@ func (juo *JobUpdateOne) ExecX(ctx context.Context) {
 	if err := juo.Exec(ctx); err != nil {
 		panic(err)
 	}
+}
+
+// defaults sets the default values of the builder before save.
+func (juo *JobUpdateOne) defaults() error {
+	if _, ok := juo.mutation.UpdatedAt(); !ok {
+		if job.UpdateDefaultUpdatedAt == nil {
+			return fmt.Errorf("ent: uninitialized job.UpdateDefaultUpdatedAt (forgotten import ent/runtime?)")
+		}
+		v := job.UpdateDefaultUpdatedAt()
+		juo.mutation.SetUpdatedAt(v)
+	}
+	return nil
 }
 
 func (juo *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
@@ -251,11 +312,17 @@ func (juo *JobUpdateOne) sqlSave(ctx context.Context) (_node *Job, err error) {
 			}
 		}
 	}
+	if value, ok := juo.mutation.UpdatedAt(); ok {
+		_spec.SetField(job.FieldUpdatedAt, field.TypeTime, value)
+	}
 	if value, ok := juo.mutation.Title(); ok {
 		_spec.SetField(job.FieldTitle, field.TypeString, value)
 	}
 	if value, ok := juo.mutation.Slug(); ok {
 		_spec.SetField(job.FieldSlug, field.TypeString, value)
+	}
+	if value, ok := juo.mutation.Status(); ok {
+		_spec.SetField(job.FieldStatus, field.TypeString, value)
 	}
 	if value, ok := juo.mutation.ApplyTo(); ok {
 		_spec.SetField(job.FieldApplyTo, field.TypeString, value)

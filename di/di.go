@@ -8,7 +8,7 @@ import (
 	companyService "github.com/toufiq-austcse/go-api-boilerplate/internal/api/company/service"
 	jobController "github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/controller"
 	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/repository"
-	taxononomyService "github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/service"
+	jobServices "github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/service"
 	"github.com/toufiq-austcse/go-api-boilerplate/pkg/db/orm/ent"
 	"go.uber.org/dig"
 )
@@ -20,9 +20,11 @@ func NewDiContainer() (*dig.Container, error) {
 		ent.New,
 		companyRepository.NewRepository,
 		repository.NewTaxonomyRepository,
+		repository.NewJobRepository,
 		authService.NewAuthService,
 		companyService.NewCompanyService,
-		taxononomyService.NewTaxonomyService,
+		jobServices.NewJobService,
+		jobServices.NewTaxonomyService,
 		authController.NewAuthController,
 		jobController.NewJobController,
 		jobController.NewTaxonomyController,
