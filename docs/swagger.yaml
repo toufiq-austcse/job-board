@@ -1,4 +1,15 @@
 definitions:
+  api_response.PaginationResponse:
+    properties:
+      current_page:
+        type: integer
+      items_per_page:
+        type: integer
+      total_items:
+        type: integer
+      total_page:
+        type: integer
+    type: object
   api_response.Response:
     properties:
       code:
@@ -12,6 +23,23 @@ definitions:
         type: array
       message:
         type: string
+    type: object
+  api_response.ResponseWithPagination:
+    properties:
+      code:
+        description: This is Name
+        type: integer
+      data:
+        type: object
+      errors:
+        items:
+          type: string
+        type: array
+      message:
+        type: string
+      pagination:
+        $ref: '#/definitions/api_response.PaginationResponse'
+        type: object
     type: object
   req.CreateJobReqModel:
     properties:
@@ -30,6 +58,13 @@ definitions:
     - description
     - taxonomies
     - title
+    type: object
+  req.JobListQuery:
+    properties:
+      limit:
+        type: integer
+      page:
+        type: integer
     type: object
   req.LoginReqModel:
     properties:
@@ -61,19 +96,42 @@ definitions:
       name:
         type: string
     type: object
-  res.JobRes:
+  res.JobDetailsRes:
     properties:
       apply_to:
+        type: string
+      created_at:
         type: string
       description:
         type: string
       id:
         type: integer
+      slug:
+        type: string
+      status:
+        type: string
       taxonomies:
         items:
           $ref: '#/definitions/res.JobTaxonomy'
         type: array
       title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  res.JobInListJobRes:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      slug:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+      updated_at:
         type: string
     type: object
   res.JobTaxonomy:
@@ -236,6 +294,37 @@ paths:
       tags:
       - Auth
   /api/v1/jobs:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - in: query
+        name: limit
+        type: integer
+      - in: query
+        name: page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/api_response.ResponseWithPagination'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/res.JobInListJobRes'
+                  type: array
+              type: object
+      security:
+      - Authorization: []
+      summary: List Jobs
+      tags:
+      - Jobs
     post:
       consumes:
       - application/json
@@ -258,7 +347,7 @@ paths:
             - $ref: '#/definitions/api_response.Response'
             - properties:
                 data:
-                  $ref: '#/definitions/res.JobRes'
+                  $ref: '#/definitions/res.JobDetailsRes'
               type: object
       security:
       - Authorization: []

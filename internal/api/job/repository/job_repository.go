@@ -2,7 +2,9 @@ package repository
 
 import (
 	"context"
+	"github.com/gin-gonic/gin"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/job"
 )
 
 type JobRepository struct {
@@ -26,6 +28,10 @@ func (repository JobRepository) Create(title, slug, applyTo, description string,
 
 }
 
+func (repository JobRepository) FindJobCountByTitle(title string, ctx context.Context) (int, error) {
+	return repository.client.Job.Query().Where(job.Title(title)).Count(ctx)
+}
+
 func (repository JobRepository) CreateJobTaxonomy(jobId int, taxonomyIds []int, ctx context.Context) ([]*ent.JobTaxonomy, error) {
 	bulk := make([]*ent.JobTaxonomyCreate, len(taxonomyIds))
 
@@ -35,4 +41,16 @@ func (repository JobRepository) CreateJobTaxonomy(jobId int, taxonomyIds []int, 
 	jobTaxonomies, err := repository.client.JobTaxonomy.CreateBulk(bulk...).Save(ctx)
 
 	return jobTaxonomies, err
+}
+
+func (repository JobRepository) ListJobs(companyId int, page int, limit int, ctx *gin.Context) ([]*ent.Job, int, error) {
+	jobs, err := repository.client.Job.Query().Where(job.CompanyID(companyId)).Limit(limit).Offset((page - 1) * limit).All(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	count, err := repository.client.Job.Query().Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	return jobs, count, nil
 }

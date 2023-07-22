@@ -5,9 +5,9 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
 	"fmt"
-	"github.com/gosimple/slug"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent/hook"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent/job"
+	jobEnums "github.com/toufiq-austcse/go-api-boilerplate/enums/job"
 )
 
 // Job holds the schema definition for the Job entity.
@@ -38,15 +38,10 @@ func (Job) Hooks() []ent.Hook {
 			func(next ent.Mutator) ent.Mutator {
 				return ent.MutateFunc(func(ctx context.Context, mutation ent.Mutation) (ent.Value, error) {
 					fmt.Println("called hook")
-					currentSlug, _ := mutation.Field(job.FieldSlug)
 
-					if currentSlug == "" {
-						title, _ := mutation.Field(job.FieldTitle)
-						updatedSlug := slug.MakeLang(title.(string), "en")
-						err := mutation.SetField(job.FieldSlug, updatedSlug)
-						if err != nil {
-							return nil, err
-						}
+					err := mutation.SetField(job.FieldStatus, jobEnums.ACTIVE)
+					if err != nil {
+						return nil, err
 					}
 					return next.Mutate(ctx, mutation)
 				})

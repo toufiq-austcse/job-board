@@ -10,6 +10,7 @@ import (
 func SetupJobRoutes(group *gin.RouterGroup, controller *jobController.JobController, companyService *companyService.CompanyService) {
 	group.Use(middleware.AuthMiddleware(companyService))
 	group.POST("", controller.Create)
+	group.GET("", controller.ListJobs)
 
 }
 

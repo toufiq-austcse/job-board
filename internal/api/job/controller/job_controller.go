@@ -29,7 +29,7 @@ func NewJobController(jobService *service.JobService) *JobController {
 // @Produce  json
 // @Success  200
 // @Router   /api/v1/jobs [post]
-// @Success  201      {object}  api_response.Response{data=res.JobRes}
+// @Success  201      {object}  api_response.Response{data=res.JobDetailsRes}
 func (controller *JobController) Create(context *gin.Context) {
 	company, _ := context.Get("company")
 	entCompany := company.(*ent.Company)
@@ -49,6 +49,38 @@ func (controller *JobController) Create(context *gin.Context) {
 	}
 
 	res := api_response.BuildResponse(http.StatusCreated, "Created", createdJob)
+	context.JSON(res.Code, res)
+}
+
+// ListJobs hosts godoc
+// @Summary List Jobs
+// @Security Authorization
+// @name Authorization
+// @Param    request  query      req.JobListQuery  true  "List Job Query"
+// @Tags     Jobs
+// @Accept   json
+// @Produce  json
+// @Success  200
+// @Router   /api/v1/jobs [get]
+// @Success  201      {object}  api_response.ResponseWithPagination{data=[]res.JobInListJobRes}
+func (controller *JobController) ListJobs(context *gin.Context) {
+	company, _ := context.Get("company")
+	entCompany := company.(*ent.Company)
+
+	query := req.JobListQuery{}
+	if err := query.Validate(context); err != nil {
+		errRes := api_response.BuildErrorResponse(http.StatusBadRequest, "Bad Request", err.Error(), nil)
+		context.JSON(errRes.Code, errRes)
+		return
+	}
+	jobList, pagination, err := controller.service.ListJobs(entCompany, query.Page, query.Limit, context)
+	if err != nil {
+		errRes := api_response.BuildErrorResponse(http.StatusInternalServerError, "Server Error", err.Error(), nil)
+		context.JSON(errRes.Code, errRes)
+		return
+	}
+
+	res := api_response.BuildResponseWithPagination(http.StatusOK, "Job List", jobList, pagination)
 	context.JSON(res.Code, res)
 
 }
