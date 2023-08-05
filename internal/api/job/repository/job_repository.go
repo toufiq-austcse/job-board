@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"entgo.io/ent/dialect/sql"
 	"github.com/gin-gonic/gin"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent/job"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/jobtaxonomy"
 )
 
 type JobRepository struct {
@@ -48,6 +50,12 @@ func (repository JobRepository) CreateJobTaxonomy(jobId int, taxonomyIds []int, 
 	jobTaxonomies, err := repository.client.JobTaxonomy.CreateBulk(bulk...).Save(ctx)
 
 	return jobTaxonomies, err
+}
+
+func (repository JobRepository) GetTaxonomies(jobIds []int, ctx context.Context) ([]*ent.JobTaxonomy, error) {
+	return repository.client.JobTaxonomy.Query().Where(func(selector *sql.Selector) {
+		selector.Where(sql.InInts(jobtaxonomy.FieldJobID, jobIds...))
+	}).All(ctx)
 }
 
 func (repository JobRepository) ListJobs(companyId int, page int, limit int, ctx *gin.Context) ([]*ent.Job, int, error) {

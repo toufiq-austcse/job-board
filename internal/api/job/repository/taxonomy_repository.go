@@ -24,8 +24,19 @@ func (repository TaxonomyRepository) ListTaxonomies(taxonomyType string, ctx con
 	return repository.client.Taxonomy.Query().Where(taxonomy.Type(taxonomyType)).AllX(ctx)
 }
 
-func (repository TaxonomyRepository) GetTaxonomyByIds(ids []int, ctx context.Context) ([]*ent.Taxonomy, error) {
-	return repository.client.Taxonomy.Query().Where(func(s *sql.Selector) {
-		s.Where(sql.InInts(taxonomy.FieldID, ids...))
-	}).All(ctx)
+func (repository TaxonomyRepository) GetTaxonomyByIds(ids []int, fieldTypes []string, ctx context.Context) ([]*ent.Taxonomy, error) {
+	fieldTypeInterface := make([]interface{}, len(fieldTypes))
+	for i, fieldType := range fieldTypes {
+		fieldTypeInterface[i] = fieldType
+	}
+	return repository.client.Taxonomy.Query().Where(
+		taxonomy.And(
+			func(s *sql.Selector) {
+				s.Where(sql.InInts(taxonomy.FieldID, ids...))
+			},
+			func(s *sql.Selector) {
+				s.Where(sql.In(taxonomy.FieldType, fieldTypeInterface...))
+			},
+		),
+	).All(ctx)
 }

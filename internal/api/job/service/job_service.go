@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/gosimple/slug"
+	"github.com/thoas/go-funk"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent"
+	taxonomyEnam "github.com/toufiq-austcse/go-api-boilerplate/enums/taxonomy"
 	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/apimodels/req"
 	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/apimodels/res"
 	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/repository"
@@ -51,7 +53,15 @@ func (service JobService) Create(data req.CreateJobReqModel, company *ent.Compan
 		jobTaxonomyIds[i] = jobTaxonomy.TaxonomyID
 	}
 
-	taxonomies, err := service.taxonomyRepository.GetTaxonomyByIds(jobTaxonomyIds, ctx)
+	taxonomyTypes := []string{
+		taxonomyEnam.CATEGORY,
+		taxonomyEnam.REGION,
+		taxonomyEnam.JOB_TYPE,
+		taxonomyEnam.SKILLS,
+		taxonomyEnam.SALARY_RANGE,
+	}
+
+	taxonomies, err := service.taxonomyRepository.GetTaxonomyByIds(jobTaxonomyIds, taxonomyTypes, ctx)
 
 	jobRes := &res.JobDetailsRes{
 		ID:          createdJob.ID,
@@ -83,14 +93,59 @@ func (service JobService) ListJobs(company *ent.Company, page int, limit int, ct
 	if err != nil {
 		return result, nil, err
 	}
+
+	jobIds := funk.Map(jobList, func(job *ent.Job) int {
+		return job.ID
+	}).([]int)
+
+	allJobTaxonomies, err := service.repository.GetTaxonomies(jobIds, ctx)
+	if err != nil {
+		return result, nil, err
+	}
+
+	taxonomyIds := funk.Map(allJobTaxonomies, func(jobTaxonomy *ent.JobTaxonomy) int {
+		return jobTaxonomy.TaxonomyID
+	}).([]int)
+
+	taxonomyTypes := []string{taxonomyEnam.JOB_TYPE}
+	allTaxonomies, err := service.taxonomyRepository.GetTaxonomyByIds(taxonomyIds, taxonomyTypes, ctx)
+
+	if err != nil {
+		return result, nil, err
+	}
+
 	for _, job := range jobList {
+
+		jobTaxonomies := funk.Filter(allJobTaxonomies, func(jobTaxonomy *ent.JobTaxonomy) bool {
+			return jobTaxonomy.JobID == job.ID
+		})
+
+		var taxonomies []res.JobTaxonomy
+
+		for _, jobTaxonomy := range jobTaxonomies.([]*ent.JobTaxonomy) {
+			taxonomy := funk.Find(allTaxonomies, func(taxonomy *ent.Taxonomy) bool {
+				return taxonomy.ID == jobTaxonomy.TaxonomyID
+			})
+			if taxonomy != nil {
+				taxonomy := taxonomy.(*ent.Taxonomy)
+				taxonomies = append(taxonomies, res.JobTaxonomy{
+					ID:    taxonomy.ID,
+					Title: taxonomy.Title,
+					Type:  taxonomy.Type,
+					Slug:  taxonomy.Slug,
+				})
+			}
+
+		}
+
 		result = append(result, &res.JobInListJobRes{
-			ID:        job.ID,
-			Title:     job.Title,
-			Slug:      job.Slug,
-			Status:    job.Status,
-			CreatedAt: job.CreatedAt,
-			UpdatedAt: job.UpdatedAt,
+			ID:         job.ID,
+			Title:      job.Title,
+			Slug:       job.Slug,
+			Status:     job.Status,
+			Taxonomies: taxonomies,
+			CreatedAt:  job.CreatedAt,
+			UpdatedAt:  job.UpdatedAt,
 		})
 	}
 	if page == 0 && limit == 0 {
