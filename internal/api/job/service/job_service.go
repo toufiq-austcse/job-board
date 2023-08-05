@@ -25,13 +25,14 @@ func NewJobService(jobRepository *repository.JobRepository, taxonomyRepository *
 
 func (service JobService) Create(data req.CreateJobReqModel, company *ent.Company, ctx context.Context) (*res.JobDetailsRes, error) {
 	jobSlug := slug.MakeLang(data.Title, "en")
-	currentAvailableJobsCount, err := service.repository.FindJobCountByTitle(data.Title, ctx)
+	currentAvailableJobsCount, err := service.repository.GetJobCount(ctx)
 	if err != nil {
 		return nil, err
 	}
+
+	fmt.Println("currentAvailableJobsCount ", currentAvailableJobsCount)
 	if currentAvailableJobsCount > 0 {
 		jobSlug = jobSlug + "-" + strconv.Itoa(currentAvailableJobsCount)
-		fmt.Println("jobSlug ", jobSlug)
 	}
 
 	createdJob, err := service.repository.Create(data.Title, jobSlug, data.ApplyTo, data.Description, company.ID, ctx)

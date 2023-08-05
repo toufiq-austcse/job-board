@@ -31,6 +31,13 @@ func (repository JobRepository) Create(title, slug, applyTo, description string,
 func (repository JobRepository) FindJobCountByTitle(title string, ctx context.Context) (int, error) {
 	return repository.client.Job.Query().Where(job.Title(title)).Count(ctx)
 }
+func (repository JobRepository) FindJobCountBySlug(slug string, ctx context.Context) (int, error) {
+	return repository.client.Job.Query().Where(job.Slug(slug)).Count(ctx)
+}
+
+func (repository JobRepository) GetJobCount(ctx context.Context) (int, error) {
+	return repository.client.Job.Query().Count(ctx)
+}
 
 func (repository JobRepository) CreateJobTaxonomy(jobId int, taxonomyIds []int, ctx context.Context) ([]*ent.JobTaxonomy, error) {
 	bulk := make([]*ent.JobTaxonomyCreate, len(taxonomyIds))
