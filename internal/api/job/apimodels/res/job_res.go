@@ -21,11 +21,18 @@ type JobTaxonomy struct {
 	Slug  string `json:"slug"`
 }
 
+type JobCompany struct {
+	Name     string `json:"name"`
+	Location string `json:"location"`
+	LogoUrl  string `json:"logo_url"`
+}
+
 type JobInListJobRes struct {
 	ID         int           `json:"id"`
 	Title      string        `json:"title"`
 	Slug       string        `json:"slug"`
 	Status     *string       `json:"status"`
+	Company    JobCompany    `json:"company"`
 	Taxonomies []JobTaxonomy `json:"taxonomies"`
 	CreatedAt  time.Time     `json:"created_at"`
 	UpdatedAt  time.Time     `json:"updated_at"`

@@ -3,8 +3,9 @@ package req
 import "github.com/gin-gonic/gin"
 
 type JobListQuery struct {
-	Page  int `form:"page"`
-	Limit int `form:"limit"`
+	Page   int    `form:"page"`
+	Limit  int    `form:"limit"`
+	Status string `form:"status"`
 }
 
 func (model *JobListQuery) Validate(c *gin.Context) error {

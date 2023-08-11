@@ -87,9 +87,9 @@ func (service JobService) Create(data req.CreateJobReqModel, company *ent.Compan
 
 }
 
-func (service JobService) ListJobs(company *ent.Company, page int, limit int, ctx *gin.Context) ([]*res.JobInListJobRes, *api_response.PaginationResponse, error) {
+func (service JobService) ListJobs(company *ent.Company, page int, limit int, status string, ctx *gin.Context) ([]*res.JobInListJobRes, *api_response.PaginationResponse, error) {
 	var result []*res.JobInListJobRes
-	jobList, total, err := service.repository.ListJobs(company.ID, page, limit, ctx)
+	jobList, total, err := service.repository.ListJobs(company.ID, page, limit, status, ctx)
 	if err != nil {
 		return result, nil, err
 	}
@@ -144,8 +144,13 @@ func (service JobService) ListJobs(company *ent.Company, page int, limit int, ct
 			Slug:       job.Slug,
 			Status:     job.Status,
 			Taxonomies: taxonomies,
-			CreatedAt:  job.CreatedAt,
-			UpdatedAt:  job.UpdatedAt,
+			Company: res.JobCompany{
+				Name:     company.Name,
+				Location: company.Location,
+				LogoUrl:  company.LogoURL,
+			},
+			CreatedAt: job.CreatedAt,
+			UpdatedAt: job.UpdatedAt,
 		})
 	}
 	if page == 0 && limit == 0 {

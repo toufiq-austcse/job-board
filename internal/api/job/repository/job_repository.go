@@ -7,6 +7,7 @@ import (
 	"github.com/toufiq-austcse/go-api-boilerplate/ent"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent/job"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent/jobtaxonomy"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/predicate"
 )
 
 type JobRepository struct {
@@ -58,8 +59,14 @@ func (repository JobRepository) GetTaxonomies(jobIds []int, ctx context.Context)
 	}).All(ctx)
 }
 
-func (repository JobRepository) ListJobs(companyId int, page int, limit int, ctx *gin.Context) ([]*ent.Job, int, error) {
-	jobs, err := repository.client.Job.Query().Where(job.CompanyID(companyId)).Limit(limit).Offset((page - 1) * limit).All(ctx)
+func (repository JobRepository) ListJobs(companyId int, page int, limit int, status string, ctx *gin.Context) ([]*ent.Job, int, error) {
+	predicats := []predicate.Job{
+		job.CompanyID(companyId),
+	}
+	if status != "" {
+		predicats = append(predicats, job.Status(status))
+	}
+	jobs, err := repository.client.Job.Query().Where(predicats...).Limit(limit).Offset((page - 1) * limit).All(ctx)
 	if err != nil {
 		return nil, 0, err
 	}

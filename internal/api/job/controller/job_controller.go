@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent"
 	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/apimodels/req"
@@ -73,7 +74,8 @@ func (controller *JobController) ListJobs(context *gin.Context) {
 		context.JSON(errRes.Code, errRes)
 		return
 	}
-	jobList, pagination, err := controller.service.ListJobs(entCompany, query.Page, query.Limit, context)
+	fmt.Println("query ", query)
+	jobList, pagination, err := controller.service.ListJobs(entCompany, query.Page, query.Limit, query.Status, context)
 	if err != nil {
 		errRes := api_response.BuildErrorResponse(http.StatusInternalServerError, "Server Error", err.Error(), nil)
 		context.JSON(errRes.Code, errRes)
