@@ -88,9 +88,12 @@ func (service JobService) Create(data req.CreateJobReqModel, company *ent.Compan
 }
 
 func (service JobService) ListJobs(company *ent.Company, page int, limit int, status string, ctx *gin.Context) ([]*res.JobInListJobRes, *api_response.PaginationResponse, error) {
-	var result []*res.JobInListJobRes
+	var result = []*res.JobInListJobRes{}
 	jobList, total, err := service.repository.ListJobs(company.ID, page, limit, status, ctx)
 	if err != nil {
+		return result, nil, err
+	}
+	if len(jobList) == 0 {
 		return result, nil, err
 	}
 

@@ -60,15 +60,18 @@ func (repository JobRepository) GetTaxonomies(jobIds []int, ctx context.Context)
 }
 
 func (repository JobRepository) ListJobs(companyId int, page int, limit int, status string, ctx *gin.Context) ([]*ent.Job, int, error) {
-	predicats := []predicate.Job{
+	predicates := []predicate.Job{
 		job.CompanyID(companyId),
 	}
 	if status != "" {
-		predicats = append(predicats, job.Status(status))
+		predicates = append(predicates, job.Status(status))
 	}
-	jobs, err := repository.client.Job.Query().Where(predicats...).Limit(limit).Offset((page - 1) * limit).All(ctx)
+	jobs, err := repository.client.Job.Query().Where(predicates...).Limit(limit).Offset((page - 1) * limit).All(ctx)
 	if err != nil {
 		return nil, 0, err
+	}
+	if len(jobs) == 0 {
+		return []*ent.Job{}, 0, nil
 	}
 	count, err := repository.client.Job.Query().Count(ctx)
 	if err != nil {
