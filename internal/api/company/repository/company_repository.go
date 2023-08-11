@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"entgo.io/ent/dialect/sql"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent/company"
 	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/company/model"
@@ -43,4 +44,10 @@ func (repository *Repository) FindCompanyById(id int, ctx context.Context) (*ent
 		return nil, err
 	}
 	return aCompany, nil
+}
+
+func (repository *Repository) ListCompanyByIds(ids []int, ctx context.Context) ([]*ent.Company, error) {
+	return repository.client.Company.Query().Where(func(selector *sql.Selector) {
+		selector.Where(sql.InInts(company.FieldID, ids...))
+	}).All(ctx)
 }

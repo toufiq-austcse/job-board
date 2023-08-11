@@ -8,6 +8,7 @@ import (
 	"github.com/thoas/go-funk"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent"
 	taxonomyEnam "github.com/toufiq-austcse/go-api-boilerplate/enums/taxonomy"
+	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/company/service"
 	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/apimodels/req"
 	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/apimodels/res"
 	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/repository"
@@ -19,10 +20,11 @@ import (
 type JobService struct {
 	repository         *repository.JobRepository
 	taxonomyRepository *repository.TaxonomyRepository
+	companyService     *service.CompanyService
 }
 
-func NewJobService(jobRepository *repository.JobRepository, taxonomyRepository *repository.TaxonomyRepository) *JobService {
-	return &JobService{repository: jobRepository, taxonomyRepository: taxonomyRepository}
+func NewJobService(jobRepository *repository.JobRepository, taxonomyRepository *repository.TaxonomyRepository, companyService *service.CompanyService) *JobService {
+	return &JobService{repository: jobRepository, taxonomyRepository: taxonomyRepository, companyService: companyService}
 }
 
 func (service JobService) Create(data req.CreateJobReqModel, company *ent.Company, ctx context.Context) (*res.JobDetailsRes, error) {
@@ -89,17 +91,40 @@ func (service JobService) Create(data req.CreateJobReqModel, company *ent.Compan
 
 func (service JobService) ListJobs(company *ent.Company, page int, limit int, status string, ctx *gin.Context) ([]*res.JobInListJobRes, *api_response.PaginationResponse, error) {
 	var result = []*res.JobInListJobRes{}
-	jobList, total, err := service.repository.ListJobs(company.ID, page, limit, status, ctx)
+	var jobList []*ent.Job
+	var companies []*ent.Company
+	var total int
+	var err error
+
+	if company == nil {
+		jobList, total, err = service.repository.ListJobs(0, page, limit, status, ctx)
+
+	} else {
+		jobList, total, err = service.repository.ListJobs(company.ID, page, limit, status, ctx)
+	}
+
 	if err != nil {
 		return result, nil, err
 	}
+
 	if len(jobList) == 0 {
-		return result, nil, err
+		return result, nil, nil
 	}
 
 	jobIds := funk.Map(jobList, func(job *ent.Job) int {
 		return job.ID
 	}).([]int)
+
+	if company == nil {
+		companyIds := funk.Map(jobList, func(job *ent.Job) int {
+			return job.CompanyID
+		}).([]int)
+		companies, err = service.companyService.ListCompanyByIds(companyIds, ctx)
+		if err != nil {
+			return result, nil, err
+		}
+
+	}
 
 	allJobTaxonomies, err := service.repository.GetTaxonomies(jobIds, ctx)
 	if err != nil {
@@ -140,21 +165,38 @@ func (service JobService) ListJobs(company *ent.Company, page int, limit int, st
 			}
 
 		}
-
-		result = append(result, &res.JobInListJobRes{
+		jobResponse := &res.JobInListJobRes{
 			ID:         job.ID,
 			Title:      job.Title,
 			Slug:       job.Slug,
 			Status:     job.Status,
 			Taxonomies: taxonomies,
-			Company: res.JobCompany{
+			Company:    res.JobCompany{},
+			CreatedAt:  job.CreatedAt,
+			UpdatedAt:  job.UpdatedAt,
+		}
+		if company != nil {
+			jobResponse.Company = res.JobCompany{
 				Name:     company.Name,
 				Location: company.Location,
 				LogoUrl:  company.LogoURL,
-			},
-			CreatedAt: job.CreatedAt,
-			UpdatedAt: job.UpdatedAt,
-		})
+			}
+		} else {
+			jobCompany := funk.Find(companies, func(company *ent.Company) bool {
+				return company.ID == job.CompanyID
+			})
+			if jobCompany != nil {
+				jobCompany := jobCompany.(*ent.Company)
+				jobResponse.Company = res.JobCompany{
+					Name:     jobCompany.Name,
+					Location: jobCompany.Location,
+					LogoUrl:  jobCompany.LogoURL,
+				}
+			}
+
+		}
+		result = append(result, jobResponse)
+
 	}
 	if page == 0 && limit == 0 {
 		return result, nil, nil

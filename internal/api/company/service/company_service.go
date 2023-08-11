@@ -11,6 +11,7 @@ type CompanyRepository interface {
 	CreateCompany(createCompanyModel *model.CreateCompany, context context.Context) (*ent.Company, error)
 	FindCompanyByEmail(email string, context context.Context) (*ent.Company, error)
 	FindCompanyById(id int, ctx context.Context) (*ent.Company, error)
+	ListCompanyByIds(ids []int, ctx context.Context) ([]*ent.Company, error)
 }
 
 type CompanyService struct {
@@ -36,4 +37,9 @@ func (service *CompanyService) FindCompanyByEmail(email string, ctx context.Cont
 
 func (service *CompanyService) FindCompanyById(id int, ctx context.Context) (*ent.Company, error) {
 	return service.companyRepo.FindCompanyById(id, ctx)
+}
+
+func (service *CompanyService) ListCompanyByIds(ids []int, ctx context.Context) ([]*ent.Company, error) {
+	return service.companyRepo.ListCompanyByIds(ids, ctx)
+
 }

@@ -10,7 +10,7 @@ import (
 func Setup(group *gin.RouterGroup, controller *controller.AuthController, companyService *companyService.CompanyService) {
 	group.POST("signup", controller.SignUp)
 	group.POST("login", controller.Login)
-	group.Use(middleware.AuthMiddleware(companyService))
+	group.Use(middleware.AuthMiddleware(companyService, false))
 	group.GET("me", controller.Me)
 
 }

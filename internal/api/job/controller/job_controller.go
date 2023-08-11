@@ -65,8 +65,6 @@ func (controller *JobController) Create(context *gin.Context) {
 // @Router   /api/v1/jobs [get]
 // @Success  201      {object}  api_response.ResponseWithPagination{data=[]res.JobInListJobRes}
 func (controller *JobController) ListJobs(context *gin.Context) {
-	company, _ := context.Get("company")
-	entCompany := company.(*ent.Company)
 
 	query := req.JobListQuery{}
 	if err := query.Validate(context); err != nil {
@@ -75,6 +73,14 @@ func (controller *JobController) ListJobs(context *gin.Context) {
 		return
 	}
 	fmt.Println("query ", query)
+
+	var entCompany *ent.Company
+
+	company, isCompanyExist := context.Get("company")
+	if isCompanyExist {
+		entCompany = company.(*ent.Company)
+	}
+
 	jobList, pagination, err := controller.service.ListJobs(entCompany, query.Page, query.Limit, query.Status, context)
 	if err != nil {
 		errRes := api_response.BuildErrorResponse(http.StatusInternalServerError, "Server Error", err.Error(), nil)

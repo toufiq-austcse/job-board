@@ -9,11 +9,15 @@ import (
 	"net/http"
 )
 
-func AuthMiddleware(companyService *companyService.CompanyService) gin.HandlerFunc {
+func AuthMiddleware(companyService *companyService.CompanyService, ignoreAuthToken bool) gin.HandlerFunc {
 	return func(context *gin.Context) {
 		fmt.Println("auth middleware function called")
 		authToken := context.GetHeader("Authorization")
 		if authToken == "" {
+			if ignoreAuthToken {
+				context.Next()
+				return
+			}
 			errRes := api_response.BuildErrorResponse(http.StatusBadRequest, "Bad Request", "Authorization required in header", nil)
 			context.AbortWithStatusJSON(errRes.Code, errRes)
 			return
