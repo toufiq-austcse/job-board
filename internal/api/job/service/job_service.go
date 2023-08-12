@@ -15,7 +15,6 @@ import (
 	"github.com/toufiq-austcse/go-api-boilerplate/pkg/api_response"
 	"github.com/toufiq-austcse/go-api-boilerplate/utils"
 	"strconv"
-	"time"
 )
 
 type JobService struct {
@@ -269,8 +268,8 @@ func (service JobService) GetJobDetails(param req.JobDetailsReqParam, ctx contex
 			WebsiteUrl: company.WebsiteURL,
 		},
 		Taxonomies: jobTaxonomyRes,
-		CreatedAt:  time.Time{},
-		UpdatedAt:  time.Time{},
+		CreatedAt:  job.CreatedAt,
+		UpdatedAt:  job.UpdatedAt,
 	}, nil
 
 }
