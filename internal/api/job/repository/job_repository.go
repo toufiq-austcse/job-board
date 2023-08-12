@@ -37,6 +37,9 @@ func (repository JobRepository) FindJobCountByTitle(title string, ctx context.Co
 func (repository JobRepository) FindJobCountBySlug(slug string, ctx context.Context) (int, error) {
 	return repository.client.Job.Query().Where(job.Slug(slug)).Count(ctx)
 }
+func (repository JobRepository) FindJobBySlug(slug string, ctx context.Context) (*ent.Job, error) {
+	return repository.client.Job.Query().Where(job.Slug(slug)).Only(ctx)
+}
 
 func (repository JobRepository) GetJobCount(ctx context.Context) (int, error) {
 	return repository.client.Job.Query().Count(ctx)
@@ -57,6 +60,10 @@ func (repository JobRepository) GetTaxonomies(jobIds []int, ctx context.Context)
 	return repository.client.JobTaxonomy.Query().Where(func(selector *sql.Selector) {
 		selector.Where(sql.InInts(jobtaxonomy.FieldJobID, jobIds...))
 	}).All(ctx)
+}
+
+func (repository JobRepository) GetJobTaxonomoyByJobId(jobId int, ctx context.Context) ([]*ent.JobTaxonomy, error) {
+	return repository.client.JobTaxonomy.Query().Where(jobtaxonomy.JobID(jobId)).All(ctx)
 }
 
 func (repository JobRepository) ListJobs(companyId int, page int, limit int, status string, ctx *gin.Context) ([]*ent.Job, int, error) {

@@ -206,6 +206,11 @@ var doc = `{
                         "type": "integer",
                         "name": "page",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "status",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -260,6 +265,57 @@ var doc = `{
                         "schema": {
                             "$ref": "#/definitions/req.CreateJobReqModel"
                         }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": ""
+                    },
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api_response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/res.JobDetailsRes"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/jobs/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Authorization": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Jobs"
+                ],
+                "summary": "Get Job Details",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Job ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
@@ -434,6 +490,9 @@ var doc = `{
                 },
                 "page": {
                     "type": "integer"
+                },
+                "status": {
+                    "type": "string"
                 }
             }
         },
@@ -482,16 +541,45 @@ var doc = `{
                 }
             }
         },
+        "res.JobCompany": {
+            "type": "object",
+            "properties": {
+                "location": {
+                    "type": "string"
+                },
+                "logo_url": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "res.JobCompanyInJobDetails": {
+            "type": "object",
+            "properties": {
+                "location": {
+                    "type": "string"
+                },
+                "logo_url": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "website_url": {
+                    "type": "string"
+                }
+            }
+        },
         "res.JobDetailsRes": {
             "type": "object",
             "properties": {
-                "apply_to": {
-                    "type": "string"
+                "company": {
+                    "type": "object",
+                    "$ref": "#/definitions/res.JobCompanyInJobDetails"
                 },
                 "created_at": {
-                    "type": "string"
-                },
-                "description": {
                     "type": "string"
                 },
                 "id": {
@@ -520,6 +608,10 @@ var doc = `{
         "res.JobInListJobRes": {
             "type": "object",
             "properties": {
+                "company": {
+                    "type": "object",
+                    "$ref": "#/definitions/res.JobCompany"
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -531,6 +623,12 @@ var doc = `{
                 },
                 "status": {
                     "type": "string"
+                },
+                "taxonomies": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/res.JobTaxonomy"
+                    }
                 },
                 "title": {
                     "type": "string"

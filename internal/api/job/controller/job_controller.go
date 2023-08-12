@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent"
 	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/apimodels/req"
@@ -72,7 +71,6 @@ func (controller *JobController) ListJobs(context *gin.Context) {
 		context.JSON(errRes.Code, errRes)
 		return
 	}
-	fmt.Println("query ", query)
 
 	var entCompany *ent.Company
 
@@ -89,6 +87,43 @@ func (controller *JobController) ListJobs(context *gin.Context) {
 	}
 
 	res := api_response.BuildResponseWithPagination(http.StatusOK, "Job List", jobList, pagination)
+	context.JSON(res.Code, res)
+
+}
+
+// GetJobBySlug hosts godoc
+// @Summary Get Job Details
+// @Security Authorization
+// @name Authorization
+// @Param    id   path      int  true  "Job ID"
+// @Tags     Jobs
+// @Accept   json
+// @Produce  json
+// @Success  200
+// @Router   /api/v1/jobs/{slug} [get]
+// @Success  201      {object}  api_response.Response{data=res.JobDetailsRes}
+func (controller *JobController) GetJobBySlug(context *gin.Context) {
+	param := req.JobDetailsReqParam{}
+
+	if err := param.Validate(context); err != nil {
+		errRes := api_response.BuildErrorResponse(http.StatusBadRequest, "Bad Request", err.Error(), nil)
+		context.JSON(errRes.Code, errRes)
+		return
+	}
+	jobDetails, err := controller.service.GetJobDetails(param, context)
+
+	if err != nil {
+		var errRes api_response.Response
+		if err.Error() == "ent: job not found" {
+			errRes = api_response.BuildErrorResponse(http.StatusNotFound, "Not Found", err.Error(), nil)
+		} else {
+			errRes = api_response.BuildErrorResponse(http.StatusInternalServerError, "Server Error", err.Error(), nil)
+		}
+		context.JSON(errRes.Code, errRes)
+		return
+	}
+
+	res := api_response.BuildResponse(http.StatusOK, "Job Details", jobDetails)
 	context.JSON(res.Code, res)
 
 }

@@ -65,6 +65,8 @@ definitions:
         type: integer
       page:
         type: integer
+      status:
+        type: string
     type: object
   req.LoginReqModel:
     properties:
@@ -96,13 +98,32 @@ definitions:
       name:
         type: string
     type: object
+  res.JobCompany:
+    properties:
+      location:
+        type: string
+      logo_url:
+        type: string
+      name:
+        type: string
+    type: object
+  res.JobCompanyInJobDetails:
+    properties:
+      location:
+        type: string
+      logo_url:
+        type: string
+      name:
+        type: string
+      website_url:
+        type: string
+    type: object
   res.JobDetailsRes:
     properties:
-      apply_to:
-        type: string
+      company:
+        $ref: '#/definitions/res.JobCompanyInJobDetails'
+        type: object
       created_at:
-        type: string
-      description:
         type: string
       id:
         type: integer
@@ -121,6 +142,9 @@ definitions:
     type: object
   res.JobInListJobRes:
     properties:
+      company:
+        $ref: '#/definitions/res.JobCompany'
+        type: object
       created_at:
         type: string
       id:
@@ -129,6 +153,10 @@ definitions:
         type: string
       status:
         type: string
+      taxonomies:
+        items:
+          $ref: '#/definitions/res.JobTaxonomy'
+        type: array
       title:
         type: string
       updated_at:
@@ -304,6 +332,9 @@ paths:
       - in: query
         name: page
         type: integer
+      - in: query
+        name: status
+        type: string
       produces:
       - application/json
       responses:
@@ -352,6 +383,35 @@ paths:
       security:
       - Authorization: []
       summary: Create New Job
+      tags:
+      - Jobs
+  /api/v1/jobs/{id}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Job ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/api_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/res.JobDetailsRes'
+              type: object
+      security:
+      - Authorization: []
+      summary: Get Job Details
       tags:
       - Jobs
   /api/v1/taxonomies:

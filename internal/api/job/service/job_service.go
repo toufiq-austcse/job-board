@@ -15,6 +15,7 @@ import (
 	"github.com/toufiq-austcse/go-api-boilerplate/pkg/api_response"
 	"github.com/toufiq-austcse/go-api-boilerplate/utils"
 	"strconv"
+	"time"
 )
 
 type JobService struct {
@@ -27,7 +28,7 @@ func NewJobService(jobRepository *repository.JobRepository, taxonomyRepository *
 	return &JobService{repository: jobRepository, taxonomyRepository: taxonomyRepository, companyService: companyService}
 }
 
-func (service JobService) Create(data req.CreateJobReqModel, company *ent.Company, ctx context.Context) (*res.JobDetailsRes, error) {
+func (service JobService) Create(data req.CreateJobReqModel, company *ent.Company, ctx context.Context) (*res.CreateJobRes, error) {
 	jobSlug := slug.MakeLang(data.Title, "en")
 	currentAvailableJobsCount, err := service.repository.GetJobCount(ctx)
 	if err != nil {
@@ -65,7 +66,7 @@ func (service JobService) Create(data req.CreateJobReqModel, company *ent.Compan
 
 	taxonomies, err := service.taxonomyRepository.GetTaxonomyByIds(jobTaxonomyIds, taxonomyTypes, ctx)
 
-	jobRes := &res.JobDetailsRes{
+	jobRes := &res.CreateJobRes{
 		ID:          createdJob.ID,
 		Title:       createdJob.Title,
 		Slug:        createdJob.Slug,
@@ -203,4 +204,73 @@ func (service JobService) ListJobs(company *ent.Company, page int, limit int, st
 	}
 	paginationData := utils.GetPaginationData(total, page, limit)
 	return result, paginationData, nil
+}
+
+func (service JobService) GetTaxonomiesByJobId(jobId int, ctx context.Context) ([]*ent.Taxonomy, error) {
+	jobTaxonomies, err := service.repository.GetJobTaxonomoyByJobId(jobId, ctx)
+	if err != nil {
+		return nil, err
+	}
+	taxonomyIds := funk.Map(jobTaxonomies, func(jobTaxonomy *ent.JobTaxonomy) int {
+		return jobTaxonomy.ID
+	}).([]int)
+
+	taxonomies, err := service.taxonomyRepository.GetTaxonomyByIds(taxonomyIds, []string{
+		taxonomyEnam.JOB_TYPE,
+		taxonomyEnam.SKILLS,
+		taxonomyEnam.REGION,
+		taxonomyEnam.CATEGORY,
+		taxonomyEnam.SALARY_RANGE,
+	}, ctx)
+
+	if err != nil {
+		return nil, err
+	}
+	return taxonomies, nil
+
+}
+
+func (service JobService) GetJobDetails(param req.JobDetailsReqParam, ctx context.Context) (*res.JobDetailsRes, error) {
+	job, err := service.repository.FindJobBySlug(param.Slug, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	company, err := service.companyService.FindCompanyById(job.CompanyID, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	taxonomies, err := service.GetTaxonomiesByJobId(job.ID, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	jobTaxonomyRes := funk.Map(taxonomies, func(taxonomy *ent.Taxonomy) res.JobTaxonomy {
+		return res.JobTaxonomy{
+			ID:    taxonomy.ID,
+			Title: taxonomy.Title,
+			Slug:  taxonomy.Slug,
+			Type:  taxonomy.Type,
+		}
+	}).([]res.JobTaxonomy)
+
+	return &res.JobDetailsRes{
+		ID:          job.ID,
+		Title:       job.Title,
+		Description: job.Description,
+		ApplyTo:     job.ApplyTo,
+		Slug:        job.Slug,
+		Status:      job.Status,
+		Company: res.JobCompanyInJobDetails{
+			Name:       company.Name,
+			Location:   company.Location,
+			LogoUrl:    company.LogoURL,
+			WebsiteUrl: company.WebsiteURL,
+		},
+		Taxonomies: jobTaxonomyRes,
+		CreatedAt:  time.Time{},
+		UpdatedAt:  time.Time{},
+	}, nil
+
 }
