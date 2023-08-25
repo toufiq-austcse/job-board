@@ -211,7 +211,7 @@ func (service JobService) GetTaxonomiesByJobId(jobId int, ctx context.Context) (
 		return nil, err
 	}
 	taxonomyIds := funk.Map(jobTaxonomies, func(jobTaxonomy *ent.JobTaxonomy) int {
-		return jobTaxonomy.ID
+		return jobTaxonomy.TaxonomyID
 	}).([]int)
 
 	taxonomies, err := service.taxonomyRepository.GetTaxonomyByIds(taxonomyIds, []string{
@@ -244,6 +244,7 @@ func (service JobService) GetJobDetails(param req.JobDetailsReqParam, ctx contex
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("taxonomies ", taxonomies)
 
 	jobTaxonomyRes := funk.Map(taxonomies, func(taxonomy *ent.Taxonomy) res.JobTaxonomy {
 		return res.JobTaxonomy{
