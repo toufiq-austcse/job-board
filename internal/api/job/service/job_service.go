@@ -135,7 +135,7 @@ func (service JobService) ListJobs(company *ent.Company, page int, limit int, st
 		return jobTaxonomy.TaxonomyID
 	}).([]int)
 
-	taxonomyTypes := []string{taxonomyEnam.JOB_TYPE}
+	taxonomyTypes := []string{taxonomyEnam.JOB_TYPE, taxonomyEnam.REGION}
 	allTaxonomies, err := service.taxonomyRepository.GetTaxonomyByIds(taxonomyIds, taxonomyTypes, ctx)
 
 	if err != nil {

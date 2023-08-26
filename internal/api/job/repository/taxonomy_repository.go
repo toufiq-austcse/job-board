@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"entgo.io/ent/dialect/sql"
-	"fmt"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent/taxonomy"
 )
@@ -26,7 +25,6 @@ func (repository TaxonomyRepository) ListTaxonomies(taxonomyType string, ctx con
 }
 
 func (repository TaxonomyRepository) GetTaxonomyByIds(ids []int, fieldTypes []string, ctx context.Context) ([]*ent.Taxonomy, error) {
-	fmt.Println("ids ", ids)
 	fieldTypeInterface := make([]interface{}, len(fieldTypes))
 	for i, fieldType := range fieldTypes {
 		fieldTypeInterface[i] = fieldType
