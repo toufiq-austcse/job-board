@@ -206,7 +206,7 @@ func (service JobService) ListJobs(company *ent.Company, page int, limit int, st
 }
 
 func (service JobService) GetTaxonomiesByJobId(jobId int, ctx context.Context) ([]*ent.Taxonomy, error) {
-	jobTaxonomies, err := service.repository.GetJobTaxonomoyByJobId(jobId, ctx)
+	jobTaxonomies, err := service.repository.GetJobTaxonomyByJobId(jobId, ctx)
 	if err != nil {
 		return nil, err
 	}

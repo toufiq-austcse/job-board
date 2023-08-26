@@ -62,7 +62,7 @@ func (repository JobRepository) GetTaxonomies(jobIds []int, ctx context.Context)
 	}).All(ctx)
 }
 
-func (repository JobRepository) GetJobTaxonomoyByJobId(jobId int, ctx context.Context) ([]*ent.JobTaxonomy, error) {
+func (repository JobRepository) GetJobTaxonomyByJobId(jobId int, ctx context.Context) ([]*ent.JobTaxonomy, error) {
 	return repository.client.JobTaxonomy.Query().Where(jobtaxonomy.JobID(jobId)).All(ctx)
 }
 
@@ -86,4 +86,22 @@ func (repository JobRepository) ListJobs(companyId int, page int, limit int, sta
 		return nil, 0, err
 	}
 	return jobs, count, nil
+}
+
+func (repository JobRepository) GetJobsByTaxonomyId(taxonomyId int, ctx context.Context) ([]*ent.Job, error) {
+	var jobs []*ent.Job
+	err := repository.client.JobTaxonomy.Query().Where(func(selector *sql.Selector) {
+		selector.Where(sql.EQ(jobtaxonomy.FieldTaxonomyID, taxonomyId))
+		jobTableView := sql.Table(job.Table)
+		selector.LeftJoin(jobTableView).On(selector.C(jobtaxonomy.FieldJobID), jobTableView.C(job.FieldID)).
+			Select(jobTableView.C(job.FieldID), jobTableView.C(job.FieldTitle), jobTableView.C(job.FieldSlug),
+				jobTableView.C(job.FieldStatus), jobTableView.C(job.FieldCompanyID), jobTableView.C(job.FieldApplyTo),
+				jobTableView.C(job.FieldDescription), jobTableView.C(job.FieldCreatedAt), jobTableView.C(job.FieldUpdatedAt))
+	}).Select().Scan(ctx, &jobs)
+
+	if err != nil {
+		return nil, err
+	}
+	return jobs, nil
+
 }

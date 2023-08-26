@@ -8,6 +8,7 @@ import (
 // JobTaxonomy holds the schema definition for the JobTaxonomy entity.
 type JobTaxonomy struct {
 	ent.Schema
+	job Job
 }
 
 // Fields of the JobTaxonomy.
@@ -20,7 +21,7 @@ func (JobTaxonomy) Fields() []ent.Field {
 
 // Edges of the JobTaxonomy.
 func (JobTaxonomy) Edges() []ent.Edge {
-	return nil
+	return []ent.Edge{}
 }
 
 func (JobTaxonomy) Mixin() []ent.Mixin {
