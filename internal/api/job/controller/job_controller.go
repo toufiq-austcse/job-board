@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent"
 	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/apimodels/req"
@@ -71,6 +72,7 @@ func (controller *JobController) ListJobs(context *gin.Context) {
 		context.JSON(errRes.Code, errRes)
 		return
 	}
+	fmt.Println("query ", query)
 
 	var entCompany *ent.Company
 
@@ -79,7 +81,7 @@ func (controller *JobController) ListJobs(context *gin.Context) {
 		entCompany = company.(*ent.Company)
 	}
 
-	jobList, pagination, err := controller.service.ListJobs(entCompany, query.Page, query.Limit, query.Status, context)
+	jobList, pagination, err := controller.service.ListJobsHandler(entCompany, query.Page, query.Limit, query.Status, query.TaxonomySlug, context)
 	if err != nil {
 		errRes := api_response.BuildErrorResponse(http.StatusInternalServerError, "Server Error", err.Error(), nil)
 		context.JSON(errRes.Code, errRes)
@@ -95,7 +97,7 @@ func (controller *JobController) ListJobs(context *gin.Context) {
 // @Summary Get Job Details
 // @Security Authorization
 // @name Authorization
-// @Param    id   path      int  true  "Job ID"
+// @Param    slug   path      int  true  "Job Slug"
 // @Tags     Jobs
 // @Accept   json
 // @Produce  json

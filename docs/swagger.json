@@ -191,6 +191,11 @@
                         "type": "string",
                         "name": "status",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "taxonomy_slug",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -272,7 +277,7 @@
                 }
             }
         },
-        "/api/v1/jobs/{id}": {
+        "/api/v1/jobs/{slug}": {
             "get": {
                 "security": [
                     {
@@ -292,8 +297,8 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Job ID",
-                        "name": "id",
+                        "description": "Job Slug",
+                        "name": "slug",
                         "in": "path",
                         "required": true
                     }
@@ -473,6 +478,9 @@
                 },
                 "status": {
                     "type": "string"
+                },
+                "taxonomy_slug": {
+                    "type": "string"
                 }
             }
         },
@@ -555,11 +563,17 @@
         "res.JobDetailsRes": {
             "type": "object",
             "properties": {
+                "apply_to": {
+                    "type": "string"
+                },
                 "company": {
                     "type": "object",
                     "$ref": "#/definitions/res.JobCompanyInJobDetails"
                 },
                 "created_at": {
+                    "type": "string"
+                },
+                "description": {
                     "type": "string"
                 },
                 "id": {

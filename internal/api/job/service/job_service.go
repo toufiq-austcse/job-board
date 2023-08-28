@@ -89,23 +89,40 @@ func (service JobService) Create(data req.CreateJobReqModel, company *ent.Compan
 
 }
 
-func (service JobService) ListJobs(company *ent.Company, page int, limit int, status string, ctx *gin.Context) ([]*res.JobInListJobRes, *api_response.PaginationResponse, error) {
+func (service JobService) ListJobsByQuery(taxonomySlug string, company *ent.Company, page int, limit int, status string, ctx *gin.Context) ([]*ent.Job, int, error) {
+	var jobList []*ent.Job
+	var total int
+	var err error
+	companyId := 0
+
+	if company != nil {
+		companyId = company.ID
+	}
+
+	if taxonomySlug != "" {
+		taxonomy, err := service.taxonomyRepository.GetTaxonomyBySlug(taxonomySlug, ctx)
+		if err != nil {
+			return jobList, 0, err
+		}
+		jobList, total, err = service.repository.GetJobsByTaxonomyId(taxonomy.ID, companyId, page, limit, status, ctx)
+	} else {
+		jobList, total, err = service.repository.ListJobs(companyId, page, limit, status, ctx)
+	}
+
+	return jobList, total, err
+}
+
+func (service JobService) ListJobsHandler(company *ent.Company, page int, limit int, status string, taxonomySlug string, ctx *gin.Context) ([]*res.JobInListJobRes, *api_response.PaginationResponse, error) {
 	var result = []*res.JobInListJobRes{}
 	var jobList []*ent.Job
 	var companies []*ent.Company
 	var total int
 	var err error
 
-	if company == nil {
-		jobList, total, err = service.repository.ListJobs(0, page, limit, status, ctx)
-
-	} else {
-		jobList, total, err = service.repository.ListJobs(company.ID, page, limit, status, ctx)
-	}
-
 	if err != nil {
 		return result, nil, err
 	}
+	jobList, total, err = service.ListJobsByQuery(taxonomySlug, company, page, limit, status, ctx)
 
 	if len(jobList) == 0 {
 		return result, nil, nil

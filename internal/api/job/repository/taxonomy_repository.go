@@ -40,3 +40,8 @@ func (repository TaxonomyRepository) GetTaxonomyByIds(ids []int, fieldTypes []st
 		),
 	).All(ctx)
 }
+
+func (repository TaxonomyRepository) GetTaxonomyBySlug(slug string, ctx context.Context) (*ent.Taxonomy, error) {
+	return repository.client.Taxonomy.Query().Where(taxonomy.Slug(slug)).Only(ctx)
+
+}

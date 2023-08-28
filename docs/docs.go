@@ -211,6 +211,11 @@ var doc = `{
                         "type": "string",
                         "name": "status",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "name": "taxonomy_slug",
+                        "in": "query"
                     }
                 ],
                 "responses": {
@@ -292,7 +297,7 @@ var doc = `{
                 }
             }
         },
-        "/api/v1/jobs/{id}": {
+        "/api/v1/jobs/{slug}": {
             "get": {
                 "security": [
                     {
@@ -312,8 +317,8 @@ var doc = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Job ID",
-                        "name": "id",
+                        "description": "Job Slug",
+                        "name": "slug",
                         "in": "path",
                         "required": true
                     }
@@ -493,6 +498,9 @@ var doc = `{
                 },
                 "status": {
                     "type": "string"
+                },
+                "taxonomy_slug": {
+                    "type": "string"
                 }
             }
         },
@@ -575,11 +583,17 @@ var doc = `{
         "res.JobDetailsRes": {
             "type": "object",
             "properties": {
+                "apply_to": {
+                    "type": "string"
+                },
                 "company": {
                     "type": "object",
                     "$ref": "#/definitions/res.JobCompanyInJobDetails"
                 },
                 "created_at": {
+                    "type": "string"
+                },
+                "description": {
                     "type": "string"
                 },
                 "id": {

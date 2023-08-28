@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"entgo.io/ent/dialect/sql"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent/job"
@@ -88,20 +89,40 @@ func (repository JobRepository) ListJobs(companyId int, page int, limit int, sta
 	return jobs, count, nil
 }
 
-func (repository JobRepository) GetJobsByTaxonomyId(taxonomyId int, ctx context.Context) ([]*ent.Job, error) {
+func (repository JobRepository) GetJobsByTaxonomyId(taxonomyId int, companyId int, page int, limit int, status string, ctx context.Context) ([]*ent.Job, int, error) {
+	fmt.Println("called ")
 	var jobs []*ent.Job
-	err := repository.client.JobTaxonomy.Query().Where(func(selector *sql.Selector) {
-		selector.Where(sql.EQ(jobtaxonomy.FieldTaxonomyID, taxonomyId))
+	predicates := []*sql.Predicate{
+		sql.EQ(jobtaxonomy.FieldTaxonomyID, taxonomyId),
+	}
+
+	if companyId != 0 {
+		predicates = append(predicates, sql.EQ(job.FieldCompanyID, companyId))
+	}
+	if status != "" {
+		predicates = append(predicates, sql.EQ(job.FieldStatus, status))
+	}
+	query := repository.client.JobTaxonomy.Query().Where(func(selector *sql.Selector) {
 		jobTableView := sql.Table(job.Table)
+		selector.Where(sql.And(predicates...))
 		selector.LeftJoin(jobTableView).On(selector.C(jobtaxonomy.FieldJobID), jobTableView.C(job.FieldID)).
 			Select(jobTableView.C(job.FieldID), jobTableView.C(job.FieldTitle), jobTableView.C(job.FieldSlug),
 				jobTableView.C(job.FieldStatus), jobTableView.C(job.FieldCompanyID), jobTableView.C(job.FieldApplyTo),
 				jobTableView.C(job.FieldDescription), jobTableView.C(job.FieldCreatedAt), jobTableView.C(job.FieldUpdatedAt))
-	}).Select().Scan(ctx, &jobs)
+	})
 
-	if err != nil {
-		return nil, err
+	if page == 0 {
+		page = 1
 	}
-	return jobs, nil
+	err := query.Limit(limit).Offset(page-1).Offset((page-1)*limit).Select().Scan(ctx, &jobs)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	count, err := query.Count(ctx)
+	if err != nil {
+		return nil, 0, err
+	}
+	return jobs, count, nil
 
 }
