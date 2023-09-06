@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"entgo.io/ent/dialect/sql"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent/job"
@@ -90,7 +89,6 @@ func (repository JobRepository) ListJobs(companyId int, page int, limit int, sta
 }
 
 func (repository JobRepository) GetJobsByTaxonomyId(taxonomyId int, companyId int, page int, limit int, status string, ctx context.Context) ([]*ent.Job, int, error) {
-	fmt.Println("called ")
 	var jobs []*ent.Job
 	predicates := []*sql.Predicate{
 		sql.EQ(jobtaxonomy.FieldTaxonomyID, taxonomyId),
@@ -114,15 +112,16 @@ func (repository JobRepository) GetJobsByTaxonomyId(taxonomyId int, companyId in
 	if page == 0 {
 		page = 1
 	}
-	err := query.Limit(limit).Offset(page-1).Offset((page-1)*limit).Select().Scan(ctx, &jobs)
-	if err != nil {
-		return nil, 0, err
-	}
-
 	count, err := query.Count(ctx)
 	if err != nil {
 		return nil, 0, err
 	}
+
+	err1 := query.Limit(limit).Offset((page-1)*limit).Select().Scan(ctx, &jobs)
+	if err1 != nil {
+		return nil, 0, err1
+	}
+
 	return jobs, count, nil
 
 }

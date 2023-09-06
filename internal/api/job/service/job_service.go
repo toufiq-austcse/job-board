@@ -90,9 +90,6 @@ func (service JobService) Create(data req.CreateJobReqModel, company *ent.Compan
 }
 
 func (service JobService) ListJobsByQuery(taxonomySlug string, company *ent.Company, page int, limit int, status string, ctx *gin.Context) ([]*ent.Job, int, error) {
-	var jobList []*ent.Job
-	var total int
-	var err error
 	companyId := 0
 
 	if company != nil {
@@ -102,30 +99,28 @@ func (service JobService) ListJobsByQuery(taxonomySlug string, company *ent.Comp
 	if taxonomySlug != "" {
 		taxonomy, err := service.taxonomyRepository.GetTaxonomyBySlug(taxonomySlug, ctx)
 		if err != nil {
-			return jobList, 0, err
+			return []*ent.Job{}, 0, err
 		}
-		jobList, total, err = service.repository.GetJobsByTaxonomyId(taxonomy.ID, companyId, page, limit, status, ctx)
+		return service.repository.GetJobsByTaxonomyId(taxonomy.ID, companyId, page, limit, status, ctx)
+
 	} else {
-		jobList, total, err = service.repository.ListJobs(companyId, page, limit, status, ctx)
+		return service.repository.ListJobs(companyId, page, limit, status, ctx)
 	}
 
-	return jobList, total, err
 }
 
 func (service JobService) ListJobsHandler(company *ent.Company, page int, limit int, status string, taxonomySlug string, ctx *gin.Context) ([]*res.JobInListJobRes, *api_response.PaginationResponse, error) {
-	var result = []*res.JobInListJobRes{}
-	var jobList []*ent.Job
+
 	var companies []*ent.Company
-	var total int
-	var err error
+
+	jobList, total, err := service.ListJobsByQuery(taxonomySlug, company, page, limit, status, ctx)
 
 	if err != nil {
-		return result, nil, err
+		return []*res.JobInListJobRes{}, nil, err
 	}
-	jobList, total, err = service.ListJobsByQuery(taxonomySlug, company, page, limit, status, ctx)
 
 	if len(jobList) == 0 {
-		return result, nil, nil
+		return []*res.JobInListJobRes{}, nil, nil
 	}
 
 	jobIds := funk.Map(jobList, func(job *ent.Job) int {
@@ -136,16 +131,17 @@ func (service JobService) ListJobsHandler(company *ent.Company, page int, limit 
 		companyIds := funk.Map(jobList, func(job *ent.Job) int {
 			return job.CompanyID
 		}).([]int)
-		companies, err = service.companyService.ListCompanyByIds(companyIds, ctx)
-		if err != nil {
-			return result, nil, err
+		if companyList, err := service.companyService.ListCompanyByIds(companyIds, ctx); err != nil {
+			return []*res.JobInListJobRes{}, nil, err
+		} else {
+			companies = companyList
 		}
 
 	}
 
 	allJobTaxonomies, err := service.repository.GetTaxonomies(jobIds, ctx)
 	if err != nil {
-		return result, nil, err
+		return []*res.JobInListJobRes{}, nil, err
 	}
 
 	taxonomyIds := funk.Map(allJobTaxonomies, func(jobTaxonomy *ent.JobTaxonomy) int {
@@ -156,8 +152,10 @@ func (service JobService) ListJobsHandler(company *ent.Company, page int, limit 
 	allTaxonomies, err := service.taxonomyRepository.GetTaxonomyByIds(taxonomyIds, taxonomyTypes, ctx)
 
 	if err != nil {
-		return result, nil, err
+		return []*res.JobInListJobRes{}, nil, err
 	}
+
+	var result []*res.JobInListJobRes
 
 	for _, job := range jobList {
 
