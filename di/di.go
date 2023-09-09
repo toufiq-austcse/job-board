@@ -4,6 +4,7 @@ import (
 	_ "github.com/lib/pq" // <------------ here
 	authController "github.com/toufiq-austcse/go-api-boilerplate/internal/api/auth/controller"
 	authService "github.com/toufiq-austcse/go-api-boilerplate/internal/api/auth/service"
+	companyController "github.com/toufiq-austcse/go-api-boilerplate/internal/api/company/controller"
 	companyRepository "github.com/toufiq-austcse/go-api-boilerplate/internal/api/company/repository"
 	companyService "github.com/toufiq-austcse/go-api-boilerplate/internal/api/company/service"
 	jobController "github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/controller"
@@ -28,6 +29,7 @@ func NewDiContainer() (*dig.Container, error) {
 		authController.NewAuthController,
 		jobController.NewJobController,
 		jobController.NewTaxonomyController,
+		companyController.NewCompanyController,
 	}
 	for _, provider := range providers {
 		if err := c.Provide(provider); err != nil {

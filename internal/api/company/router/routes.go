@@ -2,10 +2,15 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/index/controller"
+	companyController "github.com/toufiq-austcse/go-api-boilerplate/internal/api/company/controller"
+	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/company/service"
+	"github.com/toufiq-austcse/go-api-boilerplate/internal/middleware"
 )
 
-func Setup(group *gin.RouterGroup) {
-	group.GET("", controller.Index())
+func SetupCompanyRoutes(group *gin.RouterGroup, companyController *companyController.CompanyController, companyService *service.CompanyService) {
+	group.GET(":slug", companyController.GetCompany)
+
+	group.Use(middleware.AuthMiddleware(companyService, false))
+	group.PATCH(":slug", companyController.UpdateCompany)
 
 }

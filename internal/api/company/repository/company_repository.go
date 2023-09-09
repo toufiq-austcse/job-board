@@ -56,3 +56,7 @@ func (repository *CompanyRepository) ListCompanyByIds(ids []int, ctx context.Con
 func (repository *CompanyRepository) GetCompanyCount(ctx context.Context) (int, error) {
 	return repository.client.Company.Query().Count(ctx)
 }
+
+func (repository *CompanyRepository) GetCompanyBySlug(slug string, ctx context.Context) (*ent.Company, error) {
+	return repository.client.Company.Query().Where(company.Slug(slug)).Only(ctx)
+}

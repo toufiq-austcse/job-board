@@ -15,8 +15,7 @@ definitions:
       code:
         description: This is Name
         type: integer
-      data:
-        type: object
+      data: {}
       errors:
         items:
           type: string
@@ -29,8 +28,7 @@ definitions:
       code:
         description: This is Name
         type: integer
-      data:
-        type: object
+      data: {}
       errors:
         items:
           type: string
@@ -39,7 +37,6 @@ definitions:
         type: string
       pagination:
         $ref: '#/definitions/api_response.PaginationResponse'
-        type: object
     type: object
   req.CreateJobReqModel:
     properties:
@@ -58,17 +55,6 @@ definitions:
     - description
     - taxonomies
     - title
-    type: object
-  req.JobListQuery:
-    properties:
-      limit:
-        type: integer
-      page:
-        type: integer
-      status:
-        type: string
-      taxonomy_slug:
-        type: string
     type: object
   req.LoginReqModel:
     properties:
@@ -92,6 +78,56 @@ definitions:
     - email
     - name
     - password
+    type: object
+  req.UpdateCompanyReqModel:
+    properties:
+      culture_description:
+        type: string
+      description:
+        type: string
+      established:
+        type: string
+      hiring_description:
+        type: string
+      industry:
+        type: string
+      location:
+        type: string
+      logo_url:
+        type: string
+      name:
+        type: string
+      size:
+        type: string
+      website_url:
+        type: string
+    type: object
+  res.CompanyDetailsRes:
+    properties:
+      culture_description:
+        type: string
+      description:
+        type: string
+      email:
+        type: string
+      established:
+        type: string
+      hiring_description:
+        type: string
+      industry:
+        type: string
+      location:
+        type: string
+      logo_url:
+        type: string
+      name:
+        type: string
+      size:
+        type: string
+      slug:
+        type: string
+      website_url:
+        type: string
     type: object
   res.CompanyInfo:
     properties:
@@ -126,7 +162,6 @@ definitions:
         type: string
       company:
         $ref: '#/definitions/res.JobCompanyInJobDetails'
-        type: object
       created_at:
         type: string
       description:
@@ -150,7 +185,6 @@ definitions:
     properties:
       company:
         $ref: '#/definitions/res.JobCompany'
-        type: object
       created_at:
         type: string
       id:
@@ -183,19 +217,15 @@ definitions:
     properties:
       company_info:
         $ref: '#/definitions/res.CompanyInfo'
-        type: object
       token:
         $ref: '#/definitions/res.Token'
-        type: object
     type: object
   res.SignUpResModel:
     properties:
       company_info:
         $ref: '#/definitions/res.CompanyInfo'
-        type: object
       token:
         $ref: '#/definitions/res.Token'
-        type: object
     type: object
   res.TaxonomyInListRes:
     properties:
@@ -236,7 +266,6 @@ definitions:
     type: object
 info:
   contact: {}
-  license: {}
 paths:
   /:
     get:
@@ -246,7 +275,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: ""
+          description: OK
       summary: Health Check
       tags:
       - Index
@@ -265,7 +294,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: ""
+          description: OK
         "201":
           description: Created
           schema:
@@ -314,7 +343,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: ""
+          description: OK
         "201":
           description: Created
           schema:
@@ -327,6 +356,63 @@ paths:
       summary: Company SignUp
       tags:
       - Auth
+  /api/v1/companies/{slug}:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Company Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/res.CompanyDetailsRes'
+              type: object
+      summary: Company Details
+      tags:
+      - Company
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Company Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      - description: Signup Req Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/req.UpdateCompanyReqModel'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/api_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/res.CompanyDetailsRes'
+              type: object
+      security:
+      - Authorization: []
+      summary: Update Company Details
+      tags:
+      - Company
   /api/v1/jobs:
     get:
       consumes:
@@ -348,7 +434,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: ""
+          description: OK
         "201":
           description: Created
           schema:
@@ -379,7 +465,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: ""
+          description: OK
         "201":
           description: Created
           schema:
@@ -408,7 +494,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: ""
+          description: OK
         "201":
           description: Created
           schema:
@@ -436,7 +522,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: ""
+          description: OK
         "201":
           description: Created
           schema:

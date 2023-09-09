@@ -10,6 +10,8 @@ import (
 	"github.com/toufiq-austcse/go-api-boilerplate/docs"
 	authController "github.com/toufiq-austcse/go-api-boilerplate/internal/api/auth/controller"
 	authRouter "github.com/toufiq-austcse/go-api-boilerplate/internal/api/auth/router"
+	companyController "github.com/toufiq-austcse/go-api-boilerplate/internal/api/company/controller"
+	companyRouter "github.com/toufiq-austcse/go-api-boilerplate/internal/api/company/router"
 	companyService "github.com/toufiq-austcse/go-api-boilerplate/internal/api/company/service"
 	indexRouter "github.com/toufiq-austcse/go-api-boilerplate/internal/api/index/router"
 	jobController "github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/controller"
@@ -32,6 +34,7 @@ func Run(configPath string) error {
 		jobController *jobController.JobController,
 		taxonomyController *jobController.TaxonomyController,
 		companyService *companyService.CompanyService,
+		companyController *companyController.CompanyController,
 	) {
 		indexRouterGroup := apiServer.GinEngine.Group("")
 		indexRouter.Setup(indexRouterGroup)
@@ -44,6 +47,9 @@ func Run(configPath string) error {
 
 		taxonomyV1RouterGroup := apiServer.GinEngine.Group("api/v1/taxonomies")
 		jobRouter.SetupTaxonomyRoutes(taxonomyV1RouterGroup, taxonomyController)
+
+		companyV1RouterGroup := apiServer.GinEngine.Group("api/v1/companies")
+		companyRouter.SetupCompanyRoutes(companyV1RouterGroup, companyController, companyService)
 
 	})
 	if err != nil {

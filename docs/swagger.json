@@ -1,8 +1,7 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {},
-        "license": {}
+        "contact": {}
     },
     "paths": {
         "/": {
@@ -19,7 +18,7 @@
                 "summary": "Health Check",
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "OK"
                     }
                 }
             }
@@ -49,7 +48,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "OK"
                     },
                     "201": {
                         "description": "Created",
@@ -136,7 +135,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "OK"
                     },
                     "201": {
                         "description": "Created",
@@ -150,6 +149,104 @@
                                     "properties": {
                                         "data": {
                                             "$ref": "#/definitions/res.SignUpResModel"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/companies/{slug}": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Company"
+                ],
+                "summary": "Company Details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Company Slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api_response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/res.CompanyDetailsRes"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "Authorization": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Company"
+                ],
+                "summary": "Update Company Details",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Company Slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Signup Req Body",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/req.UpdateCompanyReqModel"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api_response.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/res.CompanyDetailsRes"
                                         }
                                     }
                                 }
@@ -200,7 +297,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "OK"
                     },
                     "201": {
                         "description": "Created",
@@ -254,7 +351,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "OK"
                     },
                     "201": {
                         "description": "Created",
@@ -305,7 +402,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "OK"
                     },
                     "201": {
                         "description": "Created",
@@ -350,7 +447,7 @@
                 ],
                 "responses": {
                     "200": {
-                        "description": ""
+                        "description": "OK"
                     },
                     "201": {
                         "description": "Created",
@@ -402,9 +499,7 @@
                     "description": "This is Name",
                     "type": "integer"
                 },
-                "data": {
-                    "type": "object"
-                },
+                "data": {},
                 "errors": {
                     "type": "array",
                     "items": {
@@ -423,9 +518,7 @@
                     "description": "This is Name",
                     "type": "integer"
                 },
-                "data": {
-                    "type": "object"
-                },
+                "data": {},
                 "errors": {
                     "type": "array",
                     "items": {
@@ -436,7 +529,6 @@
                     "type": "string"
                 },
                 "pagination": {
-                    "type": "object",
                     "$ref": "#/definitions/api_response.PaginationResponse"
                 }
             }
@@ -463,23 +555,6 @@
                     }
                 },
                 "title": {
-                    "type": "string"
-                }
-            }
-        },
-        "req.JobListQuery": {
-            "type": "object",
-            "properties": {
-                "limit": {
-                    "type": "integer"
-                },
-                "page": {
-                    "type": "integer"
-                },
-                "status": {
-                    "type": "string"
-                },
-                "taxonomy_slug": {
                     "type": "string"
                 }
             }
@@ -514,6 +589,82 @@
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "req.UpdateCompanyReqModel": {
+            "type": "object",
+            "properties": {
+                "culture_description": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "established": {
+                    "type": "string"
+                },
+                "hiring_description": {
+                    "type": "string"
+                },
+                "industry": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "logo_url": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "string"
+                },
+                "website_url": {
+                    "type": "string"
+                }
+            }
+        },
+        "res.CompanyDetailsRes": {
+            "type": "object",
+            "properties": {
+                "culture_description": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "established": {
+                    "type": "string"
+                },
+                "hiring_description": {
+                    "type": "string"
+                },
+                "industry": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "logo_url": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                },
+                "website_url": {
                     "type": "string"
                 }
             }
@@ -567,7 +718,6 @@
                     "type": "string"
                 },
                 "company": {
-                    "type": "object",
                     "$ref": "#/definitions/res.JobCompanyInJobDetails"
                 },
                 "created_at": {
@@ -603,7 +753,6 @@
             "type": "object",
             "properties": {
                 "company": {
-                    "type": "object",
                     "$ref": "#/definitions/res.JobCompany"
                 },
                 "created_at": {
@@ -653,11 +802,9 @@
             "type": "object",
             "properties": {
                 "company_info": {
-                    "type": "object",
                     "$ref": "#/definitions/res.CompanyInfo"
                 },
                 "token": {
-                    "type": "object",
                     "$ref": "#/definitions/res.Token"
                 }
             }
@@ -666,11 +813,9 @@
             "type": "object",
             "properties": {
                 "company_info": {
-                    "type": "object",
                     "$ref": "#/definitions/res.CompanyInfo"
                 },
                 "token": {
-                    "type": "object",
                     "$ref": "#/definitions/res.Token"
                 }
             }
