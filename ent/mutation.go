@@ -42,6 +42,7 @@ type CompanyMutation struct {
 	created_at          *time.Time
 	updated_at          *time.Time
 	name                *string
+	slug                *string
 	location            *string
 	logo_url            *string
 	website_url         *string
@@ -263,6 +264,42 @@ func (m *CompanyMutation) OldName(ctx context.Context) (v string, err error) {
 // ResetName resets all changes to the "name" field.
 func (m *CompanyMutation) ResetName() {
 	m.name = nil
+}
+
+// SetSlug sets the "slug" field.
+func (m *CompanyMutation) SetSlug(s string) {
+	m.slug = &s
+}
+
+// Slug returns the value of the "slug" field in the mutation.
+func (m *CompanyMutation) Slug() (r string, exists bool) {
+	v := m.slug
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldSlug returns the old "slug" field's value of the Company entity.
+// If the Company object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *CompanyMutation) OldSlug(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldSlug is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldSlug requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldSlug: %w", err)
+	}
+	return oldValue.Slug, nil
+}
+
+// ResetSlug resets all changes to the "slug" field.
+func (m *CompanyMutation) ResetSlug() {
+	m.slug = nil
 }
 
 // SetLocation sets the "location" field.
@@ -812,7 +849,7 @@ func (m *CompanyMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *CompanyMutation) Fields() []string {
-	fields := make([]string, 0, 14)
+	fields := make([]string, 0, 15)
 	if m.created_at != nil {
 		fields = append(fields, company.FieldCreatedAt)
 	}
@@ -821,6 +858,9 @@ func (m *CompanyMutation) Fields() []string {
 	}
 	if m.name != nil {
 		fields = append(fields, company.FieldName)
+	}
+	if m.slug != nil {
+		fields = append(fields, company.FieldSlug)
 	}
 	if m.location != nil {
 		fields = append(fields, company.FieldLocation)
@@ -869,6 +909,8 @@ func (m *CompanyMutation) Field(name string) (ent.Value, bool) {
 		return m.UpdatedAt()
 	case company.FieldName:
 		return m.Name()
+	case company.FieldSlug:
+		return m.Slug()
 	case company.FieldLocation:
 		return m.Location()
 	case company.FieldLogoURL:
@@ -906,6 +948,8 @@ func (m *CompanyMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldUpdatedAt(ctx)
 	case company.FieldName:
 		return m.OldName(ctx)
+	case company.FieldSlug:
+		return m.OldSlug(ctx)
 	case company.FieldLocation:
 		return m.OldLocation(ctx)
 	case company.FieldLogoURL:
@@ -957,6 +1001,13 @@ func (m *CompanyMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case company.FieldSlug:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetSlug(v)
 		return nil
 	case company.FieldLocation:
 		v, ok := value.(string)
@@ -1149,6 +1200,9 @@ func (m *CompanyMutation) ResetField(name string) error {
 		return nil
 	case company.FieldName:
 		m.ResetName()
+		return nil
+	case company.FieldSlug:
+		m.ResetSlug()
 		return nil
 	case company.FieldLocation:
 		m.ResetLocation()

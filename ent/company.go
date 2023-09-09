@@ -23,6 +23,8 @@ type Company struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Slug holds the value of the "slug" field.
+	Slug string `json:"slug,omitempty"`
 	// Location holds the value of the "location" field.
 	Location string `json:"location,omitempty"`
 	// LogoURL holds the value of the "logo_url" field.
@@ -55,7 +57,7 @@ func (*Company) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case company.FieldID:
 			values[i] = new(sql.NullInt64)
-		case company.FieldName, company.FieldLocation, company.FieldLogoURL, company.FieldWebsiteURL, company.FieldEmail, company.FieldPassword, company.FieldSize, company.FieldIndustry, company.FieldEstablished, company.FieldDescription, company.FieldCultureDescription, company.FieldHiringDescription:
+		case company.FieldName, company.FieldSlug, company.FieldLocation, company.FieldLogoURL, company.FieldWebsiteURL, company.FieldEmail, company.FieldPassword, company.FieldSize, company.FieldIndustry, company.FieldEstablished, company.FieldDescription, company.FieldCultureDescription, company.FieldHiringDescription:
 			values[i] = new(sql.NullString)
 		case company.FieldCreatedAt, company.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -97,6 +99,12 @@ func (c *Company) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				c.Name = value.String
+			}
+		case company.FieldSlug:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field slug", values[i])
+			} else if value.Valid {
+				c.Slug = value.String
 			}
 		case company.FieldLocation:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -208,6 +216,9 @@ func (c *Company) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(c.Name)
+	builder.WriteString(", ")
+	builder.WriteString("slug=")
+	builder.WriteString(c.Slug)
 	builder.WriteString(", ")
 	builder.WriteString("location=")
 	builder.WriteString(c.Location)

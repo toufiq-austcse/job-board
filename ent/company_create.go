@@ -54,6 +54,12 @@ func (cc *CompanyCreate) SetName(s string) *CompanyCreate {
 	return cc
 }
 
+// SetSlug sets the "slug" field.
+func (cc *CompanyCreate) SetSlug(s string) *CompanyCreate {
+	cc.mutation.SetSlug(s)
+	return cc
+}
+
 // SetLocation sets the "location" field.
 func (cc *CompanyCreate) SetLocation(s string) *CompanyCreate {
 	cc.mutation.SetLocation(s)
@@ -257,6 +263,14 @@ func (cc *CompanyCreate) check() error {
 	if _, ok := cc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Company.name"`)}
 	}
+	if _, ok := cc.mutation.Slug(); !ok {
+		return &ValidationError{Name: "slug", err: errors.New(`ent: missing required field "Company.slug"`)}
+	}
+	if v, ok := cc.mutation.Slug(); ok {
+		if err := company.SlugValidator(v); err != nil {
+			return &ValidationError{Name: "slug", err: fmt.Errorf(`ent: validator failed for field "Company.slug": %w`, err)}
+		}
+	}
 	if _, ok := cc.mutation.Email(); !ok {
 		return &ValidationError{Name: "email", err: errors.New(`ent: missing required field "Company.email"`)}
 	}
@@ -300,6 +314,10 @@ func (cc *CompanyCreate) createSpec() (*Company, *sqlgraph.CreateSpec) {
 	if value, ok := cc.mutation.Name(); ok {
 		_spec.SetField(company.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := cc.mutation.Slug(); ok {
+		_spec.SetField(company.FieldSlug, field.TypeString, value)
+		_node.Slug = value
 	}
 	if value, ok := cc.mutation.Location(); ok {
 		_spec.SetField(company.FieldLocation, field.TypeString, value)

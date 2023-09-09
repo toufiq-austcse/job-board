@@ -19,6 +19,7 @@ type Company struct {
 func (Company) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name"),
+		field.String("slug").NotEmpty().Unique(),
 		field.String("location").Optional(),
 		field.String("logo_url").Optional(),
 		field.String("website_url").Optional(),

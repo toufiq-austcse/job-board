@@ -33,6 +33,10 @@ func init() {
 	company.DefaultUpdatedAt = companyDescUpdatedAt.Default.(func() time.Time)
 	// company.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
 	company.UpdateDefaultUpdatedAt = companyDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// companyDescSlug is the schema descriptor for slug field.
+	companyDescSlug := companyFields[1].Descriptor()
+	// company.SlugValidator is a validator for the "slug" field. It is called by the builders before save.
+	company.SlugValidator = companyDescSlug.Validators[0].(func(string) error)
 	jobMixin := schema.Job{}.Mixin()
 	jobHooks := schema.Job{}.Hooks()
 	job.Hooks[0] = jobHooks[0]

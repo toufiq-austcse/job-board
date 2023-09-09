@@ -5,26 +5,26 @@ import (
 	"github.com/toufiq-austcse/go-api-boilerplate/ent"
 	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/company/model"
 	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/company/repository"
+	"github.com/toufiq-austcse/go-api-boilerplate/utils"
 )
 
-type CompanyRepository interface {
-	CreateCompany(createCompanyModel *model.CreateCompany, context context.Context) (*ent.Company, error)
-	FindCompanyByEmail(email string, context context.Context) (*ent.Company, error)
-	FindCompanyById(id int, ctx context.Context) (*ent.Company, error)
-	ListCompanyByIds(ids []int, ctx context.Context) ([]*ent.Company, error)
-}
-
 type CompanyService struct {
-	companyRepo CompanyRepository
+	companyRepo *repository.CompanyRepository
 }
 
-func NewCompanyService(repository *repository.Repository) *CompanyService {
+func NewCompanyService(repository *repository.CompanyRepository) *CompanyService {
 	return &CompanyService{companyRepo: repository}
 }
 
 func (service *CompanyService) CreateCompany(name, email, password string, ctx context.Context) (*ent.Company, error) {
+	companyCount, err := service.companyRepo.GetCompanyCount(ctx)
+	if err != nil {
+		return nil, err
+	}
+	companySlug := utils.GetSlug(name, companyCount)
 	companyModel := &model.CreateCompany{
 		Name:     name,
+		Slug:     companySlug,
 		Password: password,
 		Email:    email,
 	}

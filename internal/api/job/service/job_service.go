@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/gosimple/slug"
 	"github.com/thoas/go-funk"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent"
 	taxonomyEnam "github.com/toufiq-austcse/go-api-boilerplate/enums/taxonomy"
@@ -14,7 +13,6 @@ import (
 	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/repository"
 	"github.com/toufiq-austcse/go-api-boilerplate/pkg/api_response"
 	"github.com/toufiq-austcse/go-api-boilerplate/utils"
-	"strconv"
 )
 
 type JobService struct {
@@ -28,16 +26,14 @@ func NewJobService(jobRepository *repository.JobRepository, taxonomyRepository *
 }
 
 func (service JobService) Create(data req.CreateJobReqModel, company *ent.Company, ctx context.Context) (*res.CreateJobRes, error) {
-	jobSlug := slug.MakeLang(data.Title, "en")
 	currentAvailableJobsCount, err := service.repository.GetJobCount(ctx)
 	if err != nil {
 		return nil, err
 	}
 
 	fmt.Println("currentAvailableJobsCount ", currentAvailableJobsCount)
-	if currentAvailableJobsCount > 0 {
-		jobSlug = jobSlug + "-" + strconv.Itoa(currentAvailableJobsCount)
-	}
+
+	jobSlug := utils.GetSlug(data.Title, currentAvailableJobsCount)
 
 	createdJob, err := service.repository.Create(data.Title, jobSlug, data.ApplyTo, data.Description, company.ID, ctx)
 	if err != nil {

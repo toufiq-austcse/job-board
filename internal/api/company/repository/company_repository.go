@@ -8,20 +8,21 @@ import (
 	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/company/model"
 )
 
-type Repository struct {
+type CompanyRepository struct {
 	client *ent.Client
 }
 
-func NewRepository(client *ent.Client) *Repository {
-	return &Repository{
+func NewRepository(client *ent.Client) *CompanyRepository {
+	return &CompanyRepository{
 		client: client,
 	}
 }
 
-func (repository *Repository) CreateCompany(createCompanyModel *model.CreateCompany, context context.Context) (*ent.Company, error) {
+func (repository *CompanyRepository) CreateCompany(createCompanyModel *model.CreateCompany, context context.Context) (*ent.Company, error) {
 	newCompany, err := repository.client.Company.Create().
 		SetName(createCompanyModel.Name).
 		SetEmail(createCompanyModel.Email).
+		SetSlug(createCompanyModel.Slug).
 		SetPassword(createCompanyModel.Password).
 		Save(context)
 	if err != nil {
@@ -30,7 +31,7 @@ func (repository *Repository) CreateCompany(createCompanyModel *model.CreateComp
 	return newCompany, nil
 }
 
-func (repository *Repository) FindCompanyByEmail(email string, context context.Context) (*ent.Company, error) {
+func (repository *CompanyRepository) FindCompanyByEmail(email string, context context.Context) (*ent.Company, error) {
 	aCompany, err := repository.client.Company.Query().Where(company.Email(email)).Only(context)
 	if err != nil {
 		return nil, err
@@ -38,7 +39,7 @@ func (repository *Repository) FindCompanyByEmail(email string, context context.C
 	return aCompany, nil
 }
 
-func (repository *Repository) FindCompanyById(id int, ctx context.Context) (*ent.Company, error) {
+func (repository *CompanyRepository) FindCompanyById(id int, ctx context.Context) (*ent.Company, error) {
 	aCompany, err := repository.client.Company.Query().Where(company.ID(id)).Only(ctx)
 	if err != nil {
 		return nil, err
@@ -46,8 +47,12 @@ func (repository *Repository) FindCompanyById(id int, ctx context.Context) (*ent
 	return aCompany, nil
 }
 
-func (repository *Repository) ListCompanyByIds(ids []int, ctx context.Context) ([]*ent.Company, error) {
+func (repository *CompanyRepository) ListCompanyByIds(ids []int, ctx context.Context) ([]*ent.Company, error) {
 	return repository.client.Company.Query().Where(func(selector *sql.Selector) {
 		selector.Where(sql.InInts(company.FieldID, ids...))
 	}).All(ctx)
+}
+
+func (repository *CompanyRepository) GetCompanyCount(ctx context.Context) (int, error) {
+	return repository.client.Company.Query().Count(ctx)
 }
