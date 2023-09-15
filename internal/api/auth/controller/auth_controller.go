@@ -110,6 +110,7 @@ func (controller *AuthController) Me(context *gin.Context) {
 		LogoUrl:     entCompany.LogoURL,
 		WebsiteUrl:  entCompany.WebsiteURL,
 		Email:       entCompany.Email,
+		Slug:        entCompany.Slug,
 		Size:        entCompany.Size,
 		Industry:    entCompany.Industry,
 		Established: entCompany.Established,

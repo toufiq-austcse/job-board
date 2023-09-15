@@ -27,6 +27,7 @@ type TokenVerificationRes struct {
 	WebsiteUrl  string `json:"website_url"`
 	Email       string `json:"email"`
 	Size        string `json:"size"`
+	Slug        string `json:"slug"`
 	Industry    string `json:"industry"`
 	Established string `json:"established"`
 }
