@@ -276,6 +276,7 @@ func (service JobService) GetJobDetails(param req.JobDetailsReqParam, ctx contex
 		Company: res.JobCompanyInJobDetails{
 			Name:       company.Name,
 			Location:   company.Location,
+			Slug:       company.Slug,
 			LogoUrl:    company.LogoURL,
 			WebsiteUrl: company.WebsiteURL,
 		},

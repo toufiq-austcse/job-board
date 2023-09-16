@@ -31,6 +31,7 @@ type JobCompanyInJobDetails struct {
 	Name       string `json:"name"`
 	Location   string `json:"location"`
 	LogoUrl    string `json:"logo_url"`
+	Slug       string `json:"slug"`
 	WebsiteUrl string `json:"website_url"`
 }
 
