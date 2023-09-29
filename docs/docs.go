@@ -267,6 +267,55 @@ const docTemplate = `{
                 }
             }
         },
+        "/api/v1/companies/{slug}/jobs": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Company"
+                ],
+                "summary": "List Jobs By Company",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Company Slug",
+                        "name": "slug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/api_response.ResponseWithPagination"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/res.JobInListJobRes"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/api/v1/jobs": {
             "get": {
                 "security": [
@@ -717,6 +766,9 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "slug": {
+                    "type": "string"
+                },
                 "website_url": {
                     "type": "string"
                 }
@@ -881,6 +933,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "size": {
+                    "type": "string"
+                },
+                "slug": {
                     "type": "string"
                 },
                 "website_url": {

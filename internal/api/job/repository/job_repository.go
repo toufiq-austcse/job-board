@@ -74,10 +74,24 @@ func (repository JobRepository) ListJobs(companyId int, page int, limit int, sta
 	if status != "" {
 		predicates = append(predicates, job.Status(status))
 	}
-	jobs, err := repository.client.Job.Query().Where(predicates...).Order(ent.Desc(job.FieldCreatedAt)).Limit(limit).Offset((page - 1) * limit).All(ctx)
-	if err != nil {
-		return nil, 0, err
+
+	var jobs []*ent.Job
+	query := repository.client.Job.Query().Where(predicates...).Order(ent.Desc(job.FieldCreatedAt))
+
+	if limit == -1 {
+		if allJobs, err := query.All(ctx); err != nil {
+			return nil, 0, err
+		} else {
+			jobs = allJobs
+		}
+	} else {
+		if allJobs, err := query.Limit(limit).Offset((page - 1) * limit).All(ctx); err != nil {
+			return nil, 0, err
+		} else {
+			jobs = allJobs
+		}
 	}
+
 	if len(jobs) == 0 {
 		return []*ent.Job{}, 0, nil
 	}
@@ -117,11 +131,15 @@ func (repository JobRepository) GetJobsByTaxonomyId(taxonomyId int, companyId in
 		return nil, 0, err
 	}
 
-	err1 := query.Limit(limit).Offset((page-1)*limit).Select().Scan(ctx, &jobs)
-	if err1 != nil {
-		return nil, 0, err1
+	if limit == -1 {
+		if err := query.Select().Scan(ctx, &jobs); err != nil {
+			return nil, 0, err
+		}
+	} else {
+		if err := query.Limit(limit).Offset((page-1)*limit).Select().Scan(ctx, &jobs); err != nil {
+			return nil, 0, err
+		}
 	}
 
 	return jobs, count, nil
-
 }

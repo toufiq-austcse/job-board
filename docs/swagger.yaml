@@ -153,6 +153,8 @@ definitions:
         type: string
       name:
         type: string
+      slug:
+        type: string
       website_url:
         type: string
     type: object
@@ -260,6 +262,8 @@ definitions:
       name:
         type: string
       size:
+        type: string
+      slug:
         type: string
       website_url:
         type: string
@@ -411,6 +415,35 @@ paths:
       security:
       - Authorization: []
       summary: Update Company Details
+      tags:
+      - Company
+  /api/v1/companies/{slug}/jobs:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: Company Slug
+        in: path
+        name: slug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/api_response.ResponseWithPagination'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/res.JobInListJobRes'
+                  type: array
+              type: object
+      summary: List Jobs By Company
       tags:
       - Company
   /api/v1/jobs:

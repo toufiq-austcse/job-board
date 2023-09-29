@@ -48,25 +48,13 @@ func (service *CompanyService) ListCompanyByIds(ids []int, ctx context.Context) 
 
 }
 
-func (service *CompanyService) GetCompanyDetailsBySlug(slug string, ctx *gin.Context) (res.CompanyDetailsRes, error) {
+func (service *CompanyService) GetCompanyDetailsBySlug(slug string, ctx *gin.Context) (*ent.Company, error) {
 	company, err := service.companyRepo.GetCompanyBySlug(slug, ctx)
 	if err != nil {
-		return res.CompanyDetailsRes{}, err
+		return nil, err
 	}
-	return res.CompanyDetailsRes{
-		Name:               company.Name,
-		Location:           company.Location,
-		LogoURL:            company.LogoURL,
-		WebsiteURL:         company.WebsiteURL,
-		Email:              company.Email,
-		Size:               company.Size,
-		Industry:           company.Industry,
-		Established:        company.Established,
-		Description:        company.Description,
-		CultureDescription: company.CultureDescription,
-		HiringDescription:  company.HiringDescription,
-		Slug:               company.Slug,
-	}, nil
+	return company, nil
+
 }
 
 func (service *CompanyService) UpdateCompany(slug string, authCompany *ent.Company, body req.UpdateCompanyReqModel, ctx *gin.Context) (res.CompanyDetailsRes, error) {

@@ -9,6 +9,7 @@ import (
 
 func SetupCompanyRoutes(group *gin.RouterGroup, companyController *companyController.CompanyController, companyService *service.CompanyService) {
 	group.GET(":slug", companyController.GetCompany)
+	group.GET(":slug/jobs", companyController.ListJobsByCompany)
 
 	group.Use(middleware.AuthMiddleware(companyService, false))
 	group.PATCH(":slug", companyController.UpdateCompany)
