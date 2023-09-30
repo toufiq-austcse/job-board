@@ -13,6 +13,7 @@ func SetupJobRoutes(group *gin.RouterGroup, controller *jobController.JobControl
 	group.GET(":slug", controller.GetJobBySlug)
 	group.Use(middleware.AuthMiddleware(companyService, false))
 	group.POST("", controller.Create)
+	group.PATCH(":id", controller.Update)
 
 }
 

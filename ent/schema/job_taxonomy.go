@@ -3,12 +3,17 @@ package schema
 import (
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
+	ent2 "github.com/toufiq-austcse/go-api-boilerplate/ent"
 )
 
 // JobTaxonomy holds the schema definition for the JobTaxonomy entity.
 type JobTaxonomy struct {
 	ent.Schema
-	job Job
+}
+type JobTaxonomyDetails struct {
+	Id         int           `json:"id"`
+	Job        ent2.Job      `json:"job"`
+	Taxonomies ent2.Taxonomy `json:"taxonomies"`
 }
 
 // Fields of the JobTaxonomy.

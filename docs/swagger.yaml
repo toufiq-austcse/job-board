@@ -102,6 +102,21 @@ definitions:
       website_url:
         type: string
     type: object
+  req.UpdateJobReqModel:
+    properties:
+      apply_to:
+        type: string
+      description:
+        type: string
+      status:
+        type: string
+      taxonomies:
+        items:
+          type: integer
+        type: array
+      title:
+        type: string
+    type: object
   res.CompanyDetailsRes:
     properties:
       culture_description:
@@ -513,6 +528,41 @@ paths:
       security:
       - Authorization: []
       summary: Create New Job
+      tags:
+      - Jobs
+  /api/v1/jobs/{id}:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: Update Req Body
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/req.UpdateJobReqModel'
+      - description: Job id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/api_response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/res.JobDetailsRes'
+              type: object
+      security:
+      - Authorization: []
+      summary: Update New Job
       tags:
       - Jobs
   /api/v1/jobs/{slug}:

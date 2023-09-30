@@ -53,6 +53,49 @@ func (controller *JobController) Create(context *gin.Context) {
 	context.JSON(res.Code, res)
 }
 
+// Update hosts godoc
+// @Summary  Update New Job
+// @Param    request  body      req.UpdateJobReqModel  true  "Update Req Body"
+// @Security Authorization
+// @name Authorization
+// @Param    id   path      int  true  "Job id"
+// @Tags     Jobs
+// @Accept   json
+// @Produce  json
+// @Success  200
+// @Router   /api/v1/jobs/{id} [patch]
+// @Success  201      {object}  api_response.Response{data=res.JobDetailsRes}
+func (controller *JobController) Update(context *gin.Context) {
+	company, _ := context.Get("company")
+	entCompany := company.(*ent.Company)
+
+	param := req.UpdateJobReqParam{}
+	if err := param.Validate(context); err != nil {
+		errRes := api_response.BuildErrorResponse(http.StatusBadRequest, "Bad Request", err.Error(), nil)
+		context.JSON(errRes.Code, errRes)
+		return
+	}
+
+	body := req.UpdateJobReqModel{}
+	if err := body.Validate(context); err != nil {
+		errRes := api_response.BuildErrorResponse(http.StatusBadRequest, "Bad Request", err.Error(), nil)
+		context.JSON(errRes.Code, errRes)
+		return
+	}
+
+	updatedJob, err := controller.service.Update(param, body, entCompany, context)
+
+	if err != nil {
+		errRes := api_response.BuildErrorResponse(http.StatusInternalServerError, "Server Error", err.Error(), nil)
+		context.JSON(errRes.Code, errRes)
+		return
+	}
+	fmt.Println("updatedJob ", updatedJob)
+
+	res := api_response.BuildResponse(http.StatusOK, "Updated", updatedJob)
+	context.JSON(res.Code, res)
+}
+
 // ListJobs hosts godoc
 // @Summary List Jobs
 // @Security Authorization

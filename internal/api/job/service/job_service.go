@@ -2,10 +2,12 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/thoas/go-funk"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/schema"
 	taxonomyEnam "github.com/toufiq-austcse/go-api-boilerplate/enums/taxonomy"
 	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/company/service"
 	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/apimodels/req"
@@ -292,5 +294,40 @@ func (service JobService) GetJobDetails(company *ent.Company, param req.JobDetai
 		CreatedAt:  job.CreatedAt,
 		UpdatedAt:  job.UpdatedAt,
 	}, nil
+
+}
+
+func (service JobService) Update(param req.UpdateJobReqParam, body req.UpdateJobReqModel, company *ent.Company, context *gin.Context) ([]schema.JobTaxonomyDetails, error) {
+	job, err := service.repository.FindJobById(param.Id, context)
+	if err != nil {
+		return nil, err
+	}
+	if job.CompanyID != company.ID {
+		return nil, errors.New("unauthorized")
+	}
+
+	jobTaxonomies, err := service.repository.GetJobTaxonomiesByJobId(job.ID, context)
+	if err != nil {
+		return nil, err
+	}
+	return jobTaxonomies, nil
+	//updateJobQuery := job.Update()
+	//
+	//if body.ApplyTo != "" {
+	//	updateJobQuery.SetApplyTo(body.ApplyTo)
+	//}
+	//if body.Title != "" {
+	//	updateJobQuery.SetApplyTo(body.Title)
+	//}
+	//if body.Description != "" {
+	//	updateJobQuery.SetDescription(body.Description)
+	//}
+	//if body.Status != "" {
+	//	updateJobQuery.SetStatus(body.Status)
+	//}
+	//if len(body.Taxonomies) > 0 {
+	//	service.repository.GetJobTaxonomiesByJobId(job.ID, context)
+	//}
+	//return nil, err
 
 }

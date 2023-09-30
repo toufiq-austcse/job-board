@@ -8,6 +8,9 @@ import (
 	"github.com/toufiq-austcse/go-api-boilerplate/ent/job"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent/jobtaxonomy"
 	"github.com/toufiq-austcse/go-api-boilerplate/ent/predicate"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/schema"
+	"github.com/toufiq-austcse/go-api-boilerplate/ent/taxonomy"
+	"time"
 )
 
 type JobRepository struct {
@@ -39,6 +42,9 @@ func (repository JobRepository) FindJobCountBySlug(slug string, ctx context.Cont
 }
 func (repository JobRepository) FindJobBySlug(slug string, ctx context.Context) (*ent.Job, error) {
 	return repository.client.Job.Query().Where(job.Slug(slug)).Only(ctx)
+}
+func (repository JobRepository) FindJobById(id int, ctx context.Context) (*ent.Job, error) {
+	return repository.client.Job.Query().Where(job.ID(id)).Only(ctx)
 }
 
 func (repository JobRepository) GetJobCount(ctx context.Context) (int, error) {
@@ -142,4 +148,49 @@ func (repository JobRepository) GetJobsByTaxonomyId(taxonomyId int, companyId in
 	}
 
 	return jobs, count, nil
+}
+func (repository JobRepository) GetJobTaxonomiesByJobId(jobId int, ctx context.Context) ([]schema.JobTaxonomyDetails, error) {
+	var data []struct {
+		Id         int       `json:"id"`
+		TaxonomyId int       `json:"taxonomy_id"`
+		ParentId   int       `json:"parent_id"`
+		Title      string    `json:"title"`
+		Slug       string    `json:"slug"`
+		Type       string    `json:"type"`
+		CreatedAt  time.Time `json:"created_at"`
+		UpdatedAt  time.Time `json:"updated_at"`
+	}
+	err := repository.client.JobTaxonomy.Query().Where(func(selector *sql.Selector) {
+		taxonomyTableView := sql.Table(taxonomy.Table)
+		jobTaxonomyTableView := sql.Table(jobtaxonomy.Table)
+		selector.Where(sql.EQ(jobtaxonomy.FieldJobID, jobId))
+		selector.LeftJoin(taxonomyTableView).On(selector.C(jobtaxonomy.FieldTaxonomyID), taxonomyTableView.C(taxonomy.FieldID)).
+			Select(jobTaxonomyTableView.C(jobtaxonomy.FieldID), jobtaxonomy.FieldTaxonomyID,
+				taxonomyTableView.C(taxonomy.FieldParentID), taxonomyTableView.C(taxonomy.FieldTitle),
+				taxonomyTableView.C(taxonomy.FieldSlug), taxonomyTableView.C(taxonomy.FieldType),
+				taxonomyTableView.C(taxonomy.FieldCreatedAt), taxonomyTableView.C(taxonomy.FieldUpdatedAt))
+	}).Select().Scan(ctx, &data)
+	if err != nil {
+		return nil, err
+	}
+
+	var res []schema.JobTaxonomyDetails
+	for _, currentData := range data {
+		res = append(res, schema.JobTaxonomyDetails{
+			Id: currentData.Id,
+			Job: ent.Job{
+				ID: jobId,
+			},
+			Taxonomies: ent.Taxonomy{
+				ID:        currentData.TaxonomyId,
+				ParentID:  "",
+				Title:     currentData.Title,
+				Slug:      currentData.Slug,
+				Type:      currentData.Type,
+				CreatedAt: currentData.CreatedAt,
+				UpdatedAt: currentData.UpdatedAt,
+			},
+		})
+	}
+	return res, nil
 }
