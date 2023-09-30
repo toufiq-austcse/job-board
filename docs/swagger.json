@@ -442,7 +442,7 @@
                 "summary": "Get Job Details",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "Job Slug",
                         "name": "slug",
                         "in": "path",
@@ -780,6 +780,9 @@
                 },
                 "id": {
                     "type": "integer"
+                },
+                "is_mine": {
+                    "type": "boolean"
                 },
                 "slug": {
                     "type": "string"

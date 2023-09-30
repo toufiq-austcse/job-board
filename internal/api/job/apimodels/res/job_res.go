@@ -53,6 +53,7 @@ type JobDetailsRes struct {
 	Description string                 `json:"description"`
 	Slug        string                 `json:"slug"`
 	Status      *string                `json:"status"`
+	IsMine      bool                   `json:"is_mine"`
 	Company     JobCompanyInJobDetails `json:"company"`
 	Taxonomies  []JobTaxonomy          `json:"taxonomies"`
 	CreatedAt   time.Time              `json:"created_at"`

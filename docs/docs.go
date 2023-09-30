@@ -453,7 +453,7 @@ const docTemplate = `{
                 "summary": "Get Job Details",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "Job Slug",
                         "name": "slug",
                         "in": "path",
@@ -791,6 +791,9 @@ const docTemplate = `{
                 },
                 "id": {
                     "type": "integer"
+                },
+                "is_mine": {
+                    "type": "boolean"
                 },
                 "slug": {
                     "type": "string"

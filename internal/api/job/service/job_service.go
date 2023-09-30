@@ -240,13 +240,20 @@ func (service JobService) GetTaxonomiesByJobId(jobId int, ctx context.Context) (
 
 }
 
-func (service JobService) GetJobDetails(param req.JobDetailsReqParam, ctx context.Context) (*res.JobDetailsRes, error) {
+func (service JobService) GetIsMine(jobCompany *ent.Company, loginCompany *ent.Company) bool {
+	if loginCompany == nil {
+		return false
+	}
+	return jobCompany.ID == loginCompany.ID
+}
+
+func (service JobService) GetJobDetails(company *ent.Company, param req.JobDetailsReqParam, ctx context.Context) (*res.JobDetailsRes, error) {
 	job, err := service.repository.FindJobBySlug(param.Slug, ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	company, err := service.companyService.FindCompanyById(job.CompanyID, ctx)
+	jobCompany, err := service.companyService.FindCompanyById(job.CompanyID, ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -273,12 +280,13 @@ func (service JobService) GetJobDetails(param req.JobDetailsReqParam, ctx contex
 		ApplyTo:     job.ApplyTo,
 		Slug:        job.Slug,
 		Status:      job.Status,
+		IsMine:      service.GetIsMine(jobCompany, company),
 		Company: res.JobCompanyInJobDetails{
-			Name:       company.Name,
-			Location:   company.Location,
-			Slug:       company.Slug,
-			LogoUrl:    company.LogoURL,
-			WebsiteUrl: company.WebsiteURL,
+			Name:       jobCompany.Name,
+			Location:   jobCompany.Location,
+			Slug:       jobCompany.Slug,
+			LogoUrl:    jobCompany.LogoURL,
+			WebsiteUrl: jobCompany.WebsiteURL,
 		},
 		Taxonomies: jobTaxonomyRes,
 		CreatedAt:  job.CreatedAt,

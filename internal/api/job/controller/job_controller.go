@@ -97,7 +97,7 @@ func (controller *JobController) ListJobs(context *gin.Context) {
 // @Summary Get Job Details
 // @Security Authorization
 // @name Authorization
-// @Param    slug   path      int  true  "Job Slug"
+// @Param    slug   path      string  true  "Job Slug"
 // @Tags     Jobs
 // @Accept   json
 // @Produce  json
@@ -112,7 +112,15 @@ func (controller *JobController) GetJobBySlug(context *gin.Context) {
 		context.JSON(errRes.Code, errRes)
 		return
 	}
-	jobDetails, err := controller.service.GetJobDetails(param, context)
+
+	var entCompany *ent.Company
+
+	company, isCompanyExist := context.Get("company")
+	if isCompanyExist {
+		entCompany = company.(*ent.Company)
+	}
+
+	jobDetails, err := controller.service.GetJobDetails(entCompany, param, context)
 
 	if err != nil {
 		var errRes api_response.Response
