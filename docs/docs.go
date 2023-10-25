@@ -763,10 +763,21 @@ const docTemplate = `{
                 "taxonomies": {
                     "type": "array",
                     "items": {
-                        "type": "integer"
+                        "$ref": "#/definitions/req.UpdateJobTaxonomyModel"
                     }
                 },
                 "title": {
+                    "type": "string"
+                }
+            }
+        },
+        "req.UpdateJobTaxonomyModel": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "type": {
                     "type": "string"
                 }
             }

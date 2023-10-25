@@ -11,9 +11,9 @@ type JobTaxonomy struct {
 	ent.Schema
 }
 type JobTaxonomyDetails struct {
-	Id         int           `json:"id"`
-	Job        ent2.Job      `json:"job"`
-	Taxonomies ent2.Taxonomy `json:"taxonomies"`
+	Id       int           `json:"id"`
+	Job      ent2.Job      `json:"job"`
+	Taxonomy ent2.Taxonomy `json:"taxonomies"`
 }
 
 // Fields of the JobTaxonomy.

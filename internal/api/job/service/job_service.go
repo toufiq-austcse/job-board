@@ -161,7 +161,7 @@ func (service JobService) ListJobsHandler(company *ent.Company, page int, limit 
 			return jobTaxonomy.JobID == job.ID
 		})
 
-		var taxonomies []res.JobTaxonomy
+		taxonomies := []res.JobTaxonomy{}
 
 		for _, jobTaxonomy := range jobTaxonomies.([]*ent.JobTaxonomy) {
 			taxonomy := funk.Find(allTaxonomies, func(taxonomy *ent.Taxonomy) bool {
@@ -306,28 +306,241 @@ func (service JobService) Update(param req.UpdateJobReqParam, body req.UpdateJob
 		return nil, errors.New("unauthorized")
 	}
 
-	jobTaxonomies, err := service.repository.GetJobTaxonomiesByJobId(job.ID, context)
-	if err != nil {
-		return nil, err
+	updateJobQuery := job.Update()
+
+	if body.ApplyTo != "" {
+		updateJobQuery.SetApplyTo(body.ApplyTo)
 	}
-	return jobTaxonomies, nil
-	//updateJobQuery := job.Update()
-	//
-	//if body.ApplyTo != "" {
-	//	updateJobQuery.SetApplyTo(body.ApplyTo)
-	//}
-	//if body.Title != "" {
-	//	updateJobQuery.SetApplyTo(body.Title)
-	//}
-	//if body.Description != "" {
-	//	updateJobQuery.SetDescription(body.Description)
-	//}
-	//if body.Status != "" {
-	//	updateJobQuery.SetStatus(body.Status)
-	//}
-	//if len(body.Taxonomies) > 0 {
-	//	service.repository.GetJobTaxonomiesByJobId(job.ID, context)
-	//}
-	//return nil, err
+	if body.Title != "" {
+		updateJobQuery.SetApplyTo(body.Title)
+	}
+	if body.Description != "" {
+		updateJobQuery.SetDescription(body.Description)
+	}
+	if body.Status != "" {
+		updateJobQuery.SetStatus(body.Status)
+	}
+	if len(body.Taxonomies) > 0 {
+		jobTaxonomies, err := service.repository.GetJobTaxonomiesByJobId(job.ID, context)
+		if err != nil {
+			return nil, err
+		}
+
+		err = service.UpdateCategory(param.Id, body.Taxonomies, jobTaxonomies, context)
+		if err != nil {
+			return nil, err
+		}
+
+		err = service.UpdateSalaryRange(param.Id, body.Taxonomies, jobTaxonomies, context)
+		if err != nil {
+			return nil, err
+		}
+
+		err = service.UpdateJobType(param.Id, body.Taxonomies, jobTaxonomies, context)
+		if err != nil {
+			return nil, err
+		}
+
+		err = service.UpdateJobRegion(param.Id, body.Taxonomies, jobTaxonomies, context)
+		if err != nil {
+			return nil, err
+		}
+
+	}
+	return nil, err
 
 }
+
+func (service JobService) UpdateCategory(jobId int, taxonomies []req.UpdateJobTaxonomyModel, currentJobTaxonomies []schema.JobTaxonomyDetails, ctx context.Context) error {
+	categoryToUpdate := funk.Find(taxonomies, func(taxonomy req.UpdateJobTaxonomyModel) bool {
+		return taxonomy.Type == taxonomyEnam.CATEGORY
+	})
+
+	if categoryToUpdate == nil {
+		return nil
+	}
+	categoryToUpdateTyped := categoryToUpdate.(req.UpdateJobTaxonomyModel)
+
+	currentCategoryJobTaxonomy := funk.Find(currentJobTaxonomies, func(jobTaxonomy schema.JobTaxonomyDetails) bool {
+		return jobTaxonomy.Taxonomy.Type == taxonomyEnam.CATEGORY
+	})
+
+	if currentCategoryJobTaxonomy == nil {
+		_, err := service.repository.CreateJobTaxonomy(jobId, []int{categoryToUpdateTyped.Id}, ctx)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	currentCategoryJobTaxonomyTyped := currentCategoryJobTaxonomy.(schema.JobTaxonomyDetails)
+	_, err := service.repository.UpdateJobTaxonomyById(currentCategoryJobTaxonomyTyped.Id, categoryToUpdateTyped.Id, ctx)
+
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+
+func (service JobService) UpdateSalaryRange(jobId int, taxonomies []req.UpdateJobTaxonomyModel, currentJobTaxonomies []schema.JobTaxonomyDetails, ctx context.Context) error {
+	salaryRangeToUpdate := funk.Find(taxonomies, func(taxonomy req.UpdateJobTaxonomyModel) bool {
+		return taxonomy.Type == taxonomyEnam.SALARY_RANGE
+	})
+
+	if salaryRangeToUpdate == nil {
+		return nil
+	}
+	categoryToUpdateTyped := salaryRangeToUpdate.(req.UpdateJobTaxonomyModel)
+
+	currentSalaryRangeJobTaxonomy := funk.Find(currentJobTaxonomies, func(jobTaxonomy schema.JobTaxonomyDetails) bool {
+		return jobTaxonomy.Taxonomy.Type == taxonomyEnam.SALARY_RANGE
+	})
+
+	if currentSalaryRangeJobTaxonomy == nil {
+		_, err := service.repository.CreateJobTaxonomy(jobId, []int{categoryToUpdateTyped.Id}, ctx)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	currentSalaryRangeJobTaxonomyTyped := currentSalaryRangeJobTaxonomy.(schema.JobTaxonomyDetails)
+	_, err := service.repository.UpdateJobTaxonomyById(currentSalaryRangeJobTaxonomyTyped.Id, categoryToUpdateTyped.Id, ctx)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func (service JobService) UpdateJobType(jobId int, taxonomies []req.UpdateJobTaxonomyModel, currentJobTaxonomies []schema.JobTaxonomyDetails, ctx context.Context) error {
+	jobTypeToUpdate := funk.Find(taxonomies, func(taxonomy req.UpdateJobTaxonomyModel) bool {
+		return taxonomy.Type == taxonomyEnam.JOB_TYPE
+	})
+
+	if jobTypeToUpdate == nil {
+		return nil
+	}
+	jobTypeToUpdateTyped := jobTypeToUpdate.(req.UpdateJobTaxonomyModel)
+
+	currentJobTypeJobTaxonomy := funk.Find(currentJobTaxonomies, func(jobTaxonomy schema.JobTaxonomyDetails) bool {
+		return jobTaxonomy.Taxonomy.Type == taxonomyEnam.JOB_TYPE
+	})
+
+	if currentJobTypeJobTaxonomy == nil {
+		_, err := service.repository.CreateJobTaxonomy(jobId, []int{jobTypeToUpdateTyped.Id}, ctx)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	currentJobTypeJobTaxonomyTyped := currentJobTypeJobTaxonomy.(schema.JobTaxonomyDetails)
+	_, err := service.repository.UpdateJobTaxonomyById(currentJobTypeJobTaxonomyTyped.Id, jobTypeToUpdateTyped.Id, ctx)
+
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (service JobService) UpdateJobRegion(jobId int, taxonomies []req.UpdateJobTaxonomyModel, currentJobTaxonomies []schema.JobTaxonomyDetails, ctx context.Context) error {
+	jobRegionsToUpdate := funk.Filter(taxonomies, func(taxonomy req.UpdateJobTaxonomyModel) bool {
+		return taxonomy.Type == taxonomyEnam.REGION
+	}).([]req.UpdateJobTaxonomyModel)
+
+	if len(jobRegionsToUpdate) == 0 {
+		return nil
+	}
+
+	jobRegionIdsToUpdate := funk.Map(jobRegionsToUpdate, func(taxonomy req.UpdateJobTaxonomyModel) int {
+		return taxonomy.Id
+	}).([]int)
+	regionTaxonomies, err := service.taxonomyRepository.GetTaxonomyByIds(jobRegionIdsToUpdate, []string{taxonomyEnam.REGION}, ctx)
+	if err != nil {
+		return err
+	}
+	if len(regionTaxonomies) != len(jobRegionsToUpdate) {
+		return errors.New("invalid Region")
+	}
+
+	//jobRegionsToUpdateTyped := jobRegionsToUpdate.([]req.UpdateJobTaxonomyModel)
+
+	currentJobRegionsJobTaxonomy := funk.Filter(currentJobTaxonomies, func(jobTaxonomy schema.JobTaxonomyDetails) bool {
+		return jobTaxonomy.Taxonomy.Type == taxonomyEnam.REGION
+	})
+
+	if currentJobRegionsJobTaxonomy == nil {
+		var taxonomyIds []int
+
+		for _, region := range jobRegionsToUpdate {
+			taxonomyIds = append(taxonomyIds, region.Id)
+		}
+		_, err := service.repository.CreateJobTaxonomy(jobId, taxonomyIds, ctx)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	currentJobRegionsJobTaxonomyTyped := currentJobRegionsJobTaxonomy.([]schema.JobTaxonomyDetails)
+
+	jobRegionIdsToDelete := service.GetJobRegionsToDelete(currentJobRegionsJobTaxonomyTyped, jobRegionsToUpdate)
+	_, deleteErr := service.repository.DeleteJobTaxonomies(jobId, jobRegionIdsToDelete, ctx)
+	if deleteErr != nil {
+		return deleteErr
+	}
+
+	jobRegionIdsToCreate := service.GetJobRegionsToCreate(currentJobRegionsJobTaxonomyTyped, jobRegionsToUpdate)
+	_, createErr := service.repository.CreateJobTaxonomy(jobId, jobRegionIdsToCreate, ctx)
+	if createErr != nil {
+		return createErr
+	}
+
+	return nil
+}
+
+func (service JobService) GetJobRegionsToDelete(currentJobRegions []schema.JobTaxonomyDetails, jobRegionsToUpdate []req.UpdateJobTaxonomyModel) []int {
+	var jobRegionsIdsToDelete []int
+	for _, currentRegion := range currentJobRegions {
+		jobRegionToDelete := funk.Find(jobRegionsToUpdate, func(jobRegion req.UpdateJobTaxonomyModel) bool {
+			return jobRegion.Id == currentRegion.Taxonomy.ID
+		})
+		if jobRegionToDelete == nil {
+			jobRegionsIdsToDelete = append(jobRegionsIdsToDelete, currentRegion.Taxonomy.ID)
+		}
+
+	}
+
+	return jobRegionsIdsToDelete
+
+}
+
+func (service JobService) GetJobRegionsToCreate(currentJobRegions []schema.JobTaxonomyDetails, jobRegionsToUpdate []req.UpdateJobTaxonomyModel) []int {
+	var jobRegionsIdsToCreate []int
+
+	for _, jobRegionToUpdate := range jobRegionsToUpdate {
+		existingJobRegion := funk.Find(currentJobRegions, func(currentJobRegion schema.JobTaxonomyDetails) bool {
+			return currentJobRegion.Taxonomy.ID == jobRegionToUpdate.Id
+		})
+		if existingJobRegion == nil {
+			jobRegionsIdsToCreate = append(jobRegionsIdsToCreate, jobRegionToUpdate.Id)
+		}
+	}
+
+	return jobRegionsIdsToCreate
+
+}
+
+//func (service JobService) ValidateUpdateTaxonomyReq() {
+//	jobRegionIdsToUpdate := funk.Map(jobRegionsToUpdate, func(taxonomy req.UpdateJobTaxonomyModel) int {
+//		return taxonomy.Id
+//	}).([]int)
+//	regionTaxonomies, err := service.taxonomyRepository.GetTaxonomyByIds(jobRegionIdsToUpdate, []string{taxonomyEnam.REGION}, ctx)
+//	if err != nil {
+//		return err
+//	}
+//	if len(regionTaxonomies) != len(jobRegionsToUpdate) {
+//		return errors.New("invalid Region")
+//	}
+//
+//}

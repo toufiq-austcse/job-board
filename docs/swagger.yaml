@@ -112,9 +112,16 @@ definitions:
         type: string
       taxonomies:
         items:
-          type: integer
+          $ref: '#/definitions/req.UpdateJobTaxonomyModel'
         type: array
       title:
+        type: string
+    type: object
+  req.UpdateJobTaxonomyModel:
+    properties:
+      id:
+        type: integer
+      type:
         type: string
     type: object
   res.CompanyDetailsRes:

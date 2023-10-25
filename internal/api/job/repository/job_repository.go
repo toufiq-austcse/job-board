@@ -62,6 +62,12 @@ func (repository JobRepository) CreateJobTaxonomy(jobId int, taxonomyIds []int, 
 	return jobTaxonomies, err
 }
 
+func (repository JobRepository) DeleteJobTaxonomies(jobId int, taxonomyIds []int, ctx context.Context) (int, error) {
+	return repository.client.JobTaxonomy.Delete().Where(jobtaxonomy.JobID(jobId), func(selector *sql.Selector) {
+		selector.Where(sql.InInts(jobtaxonomy.FieldTaxonomyID, taxonomyIds...))
+	}).Exec(ctx)
+
+}
 func (repository JobRepository) GetTaxonomies(jobIds []int, ctx context.Context) ([]*ent.JobTaxonomy, error) {
 	return repository.client.JobTaxonomy.Query().Where(func(selector *sql.Selector) {
 		selector.Where(sql.InInts(jobtaxonomy.FieldJobID, jobIds...))
@@ -70,6 +76,10 @@ func (repository JobRepository) GetTaxonomies(jobIds []int, ctx context.Context)
 
 func (repository JobRepository) GetJobTaxonomyByJobId(jobId int, ctx context.Context) ([]*ent.JobTaxonomy, error) {
 	return repository.client.JobTaxonomy.Query().Where(jobtaxonomy.JobID(jobId)).All(ctx)
+}
+
+func (repository JobRepository) UpdateJobTaxonomyById(id int, taxonomyId int, ctx context.Context) (*ent.JobTaxonomy, error) {
+	return repository.client.JobTaxonomy.UpdateOneID(id).SetTaxonomyID(taxonomyId).Save(ctx)
 }
 
 func (repository JobRepository) ListJobs(companyId int, page int, limit int, status string, ctx *gin.Context) ([]*ent.Job, int, error) {
@@ -160,6 +170,7 @@ func (repository JobRepository) GetJobTaxonomiesByJobId(jobId int, ctx context.C
 		CreatedAt  time.Time `json:"created_at"`
 		UpdatedAt  time.Time `json:"updated_at"`
 	}
+
 	err := repository.client.JobTaxonomy.Query().Where(func(selector *sql.Selector) {
 		taxonomyTableView := sql.Table(taxonomy.Table)
 		jobTaxonomyTableView := sql.Table(jobtaxonomy.Table)
@@ -181,7 +192,7 @@ func (repository JobRepository) GetJobTaxonomiesByJobId(jobId int, ctx context.C
 			Job: ent.Job{
 				ID: jobId,
 			},
-			Taxonomies: ent.Taxonomy{
+			Taxonomy: ent.Taxonomy{
 				ID:        currentData.TaxonomyId,
 				ParentID:  "",
 				Title:     currentData.Title,
