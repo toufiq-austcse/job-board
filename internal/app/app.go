@@ -16,6 +16,7 @@ import (
 	indexRouter "github.com/toufiq-austcse/go-api-boilerplate/internal/api/index/router"
 	jobController "github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/controller"
 	jobRouter "github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/router"
+	"github.com/toufiq-austcse/go-api-boilerplate/internal/exception"
 	"github.com/toufiq-austcse/go-api-boilerplate/internal/server"
 	"time"
 )
@@ -23,7 +24,9 @@ import (
 func Run(configPath string) error {
 	config.Init(configPath)
 	apiServer := server.NewServer()
+	apiServer.GinEngine.Use(gin.CustomRecovery(exception.GlobalErrorHandler))
 	enableCors(apiServer.GinEngine)
+
 	setupSwagger(apiServer)
 	container, err := di.NewDiContainer()
 	if err != nil {

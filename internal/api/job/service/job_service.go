@@ -316,12 +316,12 @@ func (service JobService) Update(param req.UpdateJobReqParam, body req.UpdateJob
 	}
 	if body.Title != "" {
 		updateJobQuery.SetTitle(body.Title)
-		//currentAvailableJobsCount, err := service.repository.GetJobCount(ctx)
-		//if err != nil {
-		//	return nil, err
-		//}
-		//
-		//updateJobQuery.SetSlug(utils.GetSlug(body.Title, currentAvailableJobsCount))
+		currentAvailableJobsCount, err := service.repository.GetJobCount(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		updateJobQuery.SetSlug(utils.GetSlug(body.Title, currentAvailableJobsCount))
 	}
 	if body.Description != "" {
 		updateJobQuery.SetDescription(body.Description)
@@ -365,7 +365,7 @@ func (service JobService) Update(param req.UpdateJobReqParam, body req.UpdateJob
 		}
 
 	}
-	return nil, err
+	return nil, nil
 
 }
 
@@ -584,10 +584,14 @@ func (service JobService) GetJobSkillsToCreate(currentJobSkills []schema.JobTaxo
 func (service JobService) updateJobSkills(jobId int, taxonomiesToUpdate []req.UpdateJobTaxonomyModel, taxonomies []schema.JobTaxonomyDetails, ctx *gin.Context) error {
 
 	skillsToUpdate := funk.Filter(taxonomies, func(taxonomy req.UpdateJobTaxonomyModel) bool {
-		return taxonomy.Type == taxonomyEnam.REGION
-	}).([]req.UpdateJobTaxonomyModel)
+		return taxonomy.Type == taxonomyEnam.SKILLS
+	})
+	if skillsToUpdate == nil {
+		return nil
+	}
+	skillsToUpdateTyped := skillsToUpdate.([]req.UpdateJobTaxonomyModel)
 
-	if len(skillsToUpdate) == 0 {
+	if len(skillsToUpdateTyped) == 0 {
 		return nil
 	}
 
@@ -612,7 +616,7 @@ func (service JobService) updateJobSkills(jobId int, taxonomiesToUpdate []req.Up
 	if currentJobSKillsTaxonomy == nil {
 		var taxonomyIds []int
 
-		for _, skill := range skillsToUpdate {
+		for _, skill := range skillsToUpdateTyped {
 			taxonomyIds = append(taxonomyIds, skill.Id)
 		}
 		_, err := service.repository.CreateJobTaxonomy(jobId, taxonomyIds, ctx)
@@ -623,13 +627,13 @@ func (service JobService) updateJobSkills(jobId int, taxonomiesToUpdate []req.Up
 	}
 	currentJobSkillsTaxonomyTyped := currentJobSKillsTaxonomy.([]schema.JobTaxonomyDetails)
 
-	jobSkillIdsToDelete := service.GetJobSkillsToDelete(currentJobSkillsTaxonomyTyped, skillsToUpdate)
+	jobSkillIdsToDelete := service.GetJobSkillsToDelete(currentJobSkillsTaxonomyTyped, skillsToUpdateTyped)
 	_, deleteErr := service.repository.DeleteJobTaxonomies(jobId, jobSkillIdsToDelete, ctx)
 	if deleteErr != nil {
 		return deleteErr
 	}
 
-	jobSKillIdsToCreate := service.GetJobSkillsToCreate(currentJobSkillsTaxonomyTyped, skillsToUpdate)
+	jobSKillIdsToCreate := service.GetJobSkillsToCreate(currentJobSkillsTaxonomyTyped, skillsToUpdateTyped)
 	_, createErr := service.repository.CreateJobTaxonomy(jobId, jobSKillIdsToCreate, ctx)
 	if createErr != nil {
 		return createErr
