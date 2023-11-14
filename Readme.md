@@ -9,5 +9,32 @@ A simple Job Listing Platform
 FE Repo URL: https://github.com/toufiq-austcse/job-board-fe
 
 ## Explore Rest APIs
-![Swagger](https://raw.githubusercontent.com/toufiq-austcse/job-board/main/screenshots/swagger.png?token=GHSAT0AAAAAACHCAZ6ZL66NSUCEMVE22WCMZKT3S3A)
+ <p> Swagger </p>
+    <img src ="screenshots/swagger.png">
+
+## Frontend
+<details>
+<summary>Click here to show the screenshots of project</summary>
+    <p> Home Page </p>
+    <img src ="screenshots/home_page.png">
+   <p> Job Details </p>
+    <img src ="screenshots/job_details.png">
+   <p> Company wise job list </p>
+    <img src ="screenshots/company_jobs.png">
+    <p> Category List </p>
+    <img src ="screenshots/category_list.png">
+    <p> Employers </p>
+    <img src ="screenshots/employers.png">
+    <p> Login</p>
+    <img src ="screenshots/login.png">
+    <p> Register</p>
+    <img src ="screenshots/register.png">
+    <p> Employer Account </p>
+    <img src ="screenshots/employer_account.png">
+    <p> Edit Company </p>
+    <img src ="screenshots/edit_company_profile.png">
+    <p> Create New Job </p>
+    <img src ="screenshots/create_new_job.png">
+
+</details>
 
