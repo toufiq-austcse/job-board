@@ -9,5 +9,5 @@ A simple Job Listing Platform
 FE Repo URL: https://github.com/toufiq-austcse/job-board-fe
 
 ## Explore Rest APIs
-
+![Swagger](https://raw.githubusercontent.com/toufiq-austcse/job-board/main/screenshots/swagger.png?token=GHSAT0AAAAAACHCAZ6ZL66NSUCEMVE22WCMZKT3S3A)
 
