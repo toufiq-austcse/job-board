@@ -620,7 +620,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "data": {},
-                "handlers": {
+                "errors": {
                     "type": "array",
                     "items": {
                         "type": "string"
@@ -639,7 +639,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "data": {},
-                "handlers": {
+                "errors": {
                     "type": "array",
                     "items": {
                         "type": "string"

@@ -14,7 +14,7 @@ type PaginationResponse struct {
 type Response struct {
 	Code    int         `json:"code"` // This is Name
 	Message string      `json:"message"`
-	Errors  []string    `json:"handlers"`
+	Errors  []string    `json:"errors"`
 	Data    interface{} `json:"data"`
 }
 
@@ -22,7 +22,7 @@ type Response struct {
 type ResponseWithPagination struct {
 	Code       int                 `json:"code"` // This is Name
 	Message    string              `json:"message"`
-	Errors     []string            `json:"handlers"`
+	Errors     []string            `json:"errors"`
 	Data       interface{}         `json:"data"`
 	Pagination *PaginationResponse `json:"pagination"`
 }
