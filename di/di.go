@@ -11,6 +11,7 @@ import (
 	"github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/repository"
 	jobServices "github.com/toufiq-austcse/go-api-boilerplate/internal/api/job/service"
 	"github.com/toufiq-austcse/go-api-boilerplate/pkg/db/orm/ent"
+	"github.com/toufiq-austcse/go-api-boilerplate/pkg/db/providers/influxdb"
 	"go.uber.org/dig"
 )
 
@@ -19,6 +20,7 @@ func NewDiContainer() (*dig.Container, error) {
 	providers := []interface {
 	}{
 		ent.New,
+		influxdb.OpenInfluxDbConnection,
 		companyRepository.NewRepository,
 		repository.NewTaxonomyRepository,
 		repository.NewJobRepository,

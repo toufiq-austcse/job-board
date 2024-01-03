@@ -7,5 +7,6 @@ import (
 
 func Setup(group *gin.RouterGroup) {
 	group.GET("", controller.Index())
+	group.GET("influx", controller.GetInFluxData())
 
 }
